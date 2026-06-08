@@ -43,3 +43,6 @@ defaults, real secrets, and misleading claims about readiness.
 - Production credentials
 - TLS/security examples without clear placeholders
 - Config changes without syntax guidance
+
+This list is a roadmap guardrail, not a permanent rule.
+Strong user demand and strong technical rationale can change it.
