@@ -37,7 +37,7 @@ Contribution rules:
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
 
-## What We Will Not Merge For Now
+## What We Will Not Merge (For Now)
 
 - Private hostnames, upstreams, or certificate paths
 - Production credentials
