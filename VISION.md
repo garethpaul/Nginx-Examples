@@ -20,11 +20,12 @@ Priority:
 - Keep logging, gzip, proxy, and upstream settings easy to inspect
 - Avoid embedding real domain names, certificates, or private upstreams
 - Maintain security policy for the examples
+- Keep sample-only guardrails visible in README and checks
 
 Next priorities:
 
-- Add README explanations for each config file
-- Add syntax validation guidance with `nginx -t`
+- Keep README explanations for each config file current
+- Keep syntax validation guidance with `nginx -t`
 - Document which settings are sample-only and should be adapted before production
 - Add TLS examples only with safe placeholders
 
@@ -32,7 +33,7 @@ Contribution rules:
 
 - One PR = one focused config, comment, or documentation change.
 - Use placeholders for domains, paths, and certificates.
-- Verify config syntax where possible.
+- Run `make check` and verify config syntax with `nginx -t` where possible.
 - Do not add production secrets or private infrastructure details.
 
 ## Security
@@ -43,6 +44,8 @@ Canonical security policy and reporting:
 
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
+Defaults such as `server_tokens off`, explicit forwarded headers, and non-debug
+logging are part of the baseline.
 
 ## What We Will Not Merge (For Now)
 
