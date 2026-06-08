@@ -21,7 +21,8 @@ includes and Tornado upstream proxying.
 
 - Added safer sample defaults for logging, `server_tokens`, placeholder server
   names, and forwarded proxy headers.
-- Documented deployment-specific include paths and Linux-specific `epoll` usage.
+- Documented deployment-specific include/static paths and Linux-specific `epoll`
+  usage.
 - Added `Makefile` and `scripts/check-nginx-examples.py` static verification.
 - Updated README, security policy, vision, overview image, and changelog.
 

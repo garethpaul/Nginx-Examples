@@ -51,7 +51,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Treat both configs as sample-only starting points, not production-ready drop-ins.
 - `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled` include path for the deployment host.
-- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers.
+- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. Replace `/srv/example-app` with the deployment host's static root.
 - `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
 
 ## Testing and Verification

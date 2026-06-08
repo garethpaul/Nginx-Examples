@@ -83,9 +83,13 @@ def main() -> int:
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_next_upstream error;",
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
+        "# Replace with the static root for the deployment host.",
+        "root /srv/example-app;",
     ]:
         if phrase not in tornado:
             failures.append(f"sample_tornado_nginx.conf must include {phrase}")
+    if "/home/ubuntu" in tornado:
+        failures.append("sample_tornado_nginx.conf must use placeholder paths, not host-specific home paths")
     if "proxy_set_header Host $http_host;" in tornado:
         failures.append("sample_tornado_nginx.conf must not trust raw client Host headers")
     upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
