@@ -1,5 +1,8 @@
 ## Nginx Examples Vision
 
+This document explains the current state and direction of the project.
+Project overview and developer docs: [`README.md`](README.md)
+
 Nginx Examples is a small collection of sample Nginx configuration files for PHP
 and Tornado-style upstream proxying.
 
