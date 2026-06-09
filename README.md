@@ -51,7 +51,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Treat both configs as sample-only starting points, not production-ready drop-ins.
 - `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled` include path for the deployment host.
-- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. Replace `/srv/example-app` with the deployment host's static root.
+- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
 - `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
 
 ## Testing and Verification
@@ -73,6 +73,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
 ## Security and Privacy Notes
 
 - Both examples disable `server_tokens` with `server_tokens off`.
+- The Tornado proxy example also hides upstream `Server` response headers with `proxy_hide_header Server`.
 - Review changes touching network requests, sockets, proxy headers, upstreams, or service endpoints; examples from the scan include sample_tornado_nginx.conf.
 - Review changes touching file, media, JSON, XML, CSV, OCR, or data parsing; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.
 - Review changes touching infrastructure, proxy, cloud, or deployment configuration; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.

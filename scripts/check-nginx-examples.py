@@ -18,6 +18,7 @@ REQUIRED = [
     "SECURITY.md",
     "VISION.md",
     "docs/plans/2026-06-08-nginx-examples-baseline.md",
+    "docs/plans/2026-06-09-hide-upstream-server-header.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -81,6 +82,7 @@ def main() -> int:
         "proxy_set_header Host $host;",
         "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;",
         "proxy_set_header X-Forwarded-Proto $scheme;",
+        "proxy_hide_header Server;",
         "proxy_next_upstream error;",
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
         "# Replace with the static root for the deployment host.",
@@ -92,18 +94,23 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf must use placeholder paths, not host-specific home paths")
     if "proxy_set_header Host $http_host;" in tornado:
         failures.append("sample_tornado_nginx.conf must not trust raw client Host headers")
+    if "proxy_pass_header Server;" in tornado:
+        failures.append("sample_tornado_nginx.conf must not pass upstream Server headers")
     upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
     if not upstreams or any(host != "127.0.0.1" for host in upstreams):
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
     docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
-    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "X-Forwarded-For"]:
+    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "X-Forwarded-For", "proxy_hide_header Server"]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
     plan = read("docs/plans/2026-06-08-nginx-examples-baseline.md")
     if "status: completed" not in plan or "make check" not in plan:
         failures.append("completed plan must record status and verification")
+    header_plan = read("docs/plans/2026-06-09-hide-upstream-server-header.md")
+    if "status: completed" not in header_plan or "proxy_hide_header Server" not in header_plan:
+        failures.append("upstream header plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

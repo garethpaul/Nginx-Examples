@@ -27,6 +27,7 @@ Helpful reports include:
 - This repository appears to be a web server configuration sample. The active security scope is the code and documentation on the default branch.
 - The checked-in files are sample-only Nginx configs. They must be adapted and verified with `nginx -t` before use in a live deployment.
 - Both examples should keep `server_tokens off` so Nginx version disclosure is not enabled by default.
+- Proxy examples should keep `proxy_hide_header Server` so upstream framework or app server versions are not exposed by default.
 - Review found network clients, sockets, web APIs, proxy headers, or service endpoints; changes in those areas should receive security-focused review before merge.
 - Review found file, document, data, or media parsing flows; changes in those areas should receive security-focused review before merge.
 - Review found infrastructure, deployment, proxy, or cloud configuration; changes in those areas should receive security-focused review before merge.

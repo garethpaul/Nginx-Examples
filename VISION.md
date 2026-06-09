@@ -21,6 +21,7 @@ Priority:
 - Avoid embedding real domain names, certificates, or private upstreams
 - Maintain security policy for the examples
 - Keep sample-only guardrails visible in README and checks
+- Keep upstream server header disclosure disabled in proxy samples
 
 Next priorities:
 
@@ -44,8 +45,8 @@ Canonical security policy and reporting:
 
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
-Defaults such as `server_tokens off`, explicit forwarded headers, and non-debug
-logging are part of the baseline.
+Defaults such as `server_tokens off`, `proxy_hide_header Server`, explicit
+forwarded headers, and non-debug logging are part of the baseline.
 
 ## What We Will Not Merge (For Now)
 
