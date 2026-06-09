@@ -19,6 +19,7 @@ Priority:
 - Preserve PHP and Tornado example configuration files
 - Keep logging, gzip, proxy, and upstream settings easy to inspect
 - Keep PHP sample includes limited to `sites-enabled/*.conf`
+- Keep request body size limits explicit in both samples
 - Avoid embedding real domain names, certificates, or private upstreams
 - Maintain security policy for the examples
 - Keep sample-only guardrails visible in README and checks
@@ -47,7 +48,8 @@ Canonical security policy and reporting:
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
 Defaults such as `server_tokens off`, `proxy_hide_header Server`, explicit
-forwarded headers, and non-debug logging are part of the baseline.
+forwarded headers, `client_max_body_size`, and non-debug logging are part of the
+baseline.
 
 ## What We Will Not Merge (For Now)
 

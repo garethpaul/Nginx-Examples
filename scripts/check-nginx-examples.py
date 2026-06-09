@@ -19,6 +19,7 @@ REQUIRED = [
     "VISION.md",
     "docs/plans/2026-06-08-nginx-examples-baseline.md",
     "docs/plans/2026-06-09-hide-upstream-server-header.md",
+    "docs/plans/2026-06-09-request-body-size-limit.md",
     "docs/plans/2026-06-09-sites-enabled-conf-glob.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
@@ -61,6 +62,8 @@ def main() -> int:
         check_balanced_braces(config, text, failures)
         if "server_tokens off;" not in text:
             failures.append(f"{config} must disable server_tokens")
+        if "client_max_body_size 1m;" not in text:
+            failures.append(f"{config} must define the sample client_max_body_size limit")
         if re.search(r"error_log\s+\S+\s+debug\s*;", text):
             failures.append(f"{config} must not default to debug error logging")
         if re.search(r"ssl_certificate(_key)?\s+[^;]*(/etc|/home|BEGIN|PRIVATE)", text):
@@ -105,7 +108,7 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
     docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
-    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "X-Forwarded-For", "proxy_hide_header Server", "sites-enabled/*.conf"]:
+    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "client_max_body_size", "X-Forwarded-For", "proxy_hide_header Server", "sites-enabled/*.conf"]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
@@ -119,6 +122,10 @@ def main() -> int:
     include_plan = include_plan_path.read_text(encoding="utf-8") if include_plan_path.exists() else ""
     if "status: completed" not in include_plan or "sites-enabled/*.conf" not in include_plan:
         failures.append("sites-enabled include plan must record status and verification")
+    body_size_plan_path = ROOT / "docs/plans/2026-06-09-request-body-size-limit.md"
+    body_size_plan = body_size_plan_path.read_text(encoding="utf-8") if body_size_plan_path.exists() else ""
+    if "status: completed" not in body_size_plan or "client_max_body_size" not in body_size_plan:
+        failures.append("request body size plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

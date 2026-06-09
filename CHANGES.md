@@ -7,6 +7,7 @@
 - Disabled `server_tokens` in both samples.
 - Normalized the Tornado proxy host header and added `X-Forwarded-For` and `X-Forwarded-Proto`.
 - Hid upstream `Server` response headers in the Tornado proxy example.
+- Added explicit `client_max_body_size` placeholders to both samples.
 - Added a placeholder `server_name` and notes for Linux-specific `epoll` and deployment-specific include paths.
 - Limited the PHP sample `sites-enabled` include to `sites-enabled/*.conf`.
 - Replaced the Tornado static root with a neutral placeholder path.

@@ -52,6 +52,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - Treat both configs as sample-only starting points, not production-ready drop-ins.
 - `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled/*.conf` include path for the deployment host.
 - `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
+- Both samples set `client_max_body_size 1m;` as a conservative placeholder;
+  adjust it deliberately for routes that need larger request bodies.
 - `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
 
 ## Testing and Verification
@@ -64,6 +66,8 @@ static roots, and include directories. Adjust those paths before running
 `nginx -t` or installing the examples.
 The PHP sample keeps `sites-enabled/*.conf` so backup files or stray files are
 not included as config by default.
+Both samples include `client_max_body_size` so copied examples do not silently
+inherit an overly broad upload/request-body policy.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -76,6 +80,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - Both examples disable `server_tokens` with `server_tokens off`.
 - The Tornado proxy example also hides upstream `Server` response headers with `proxy_hide_header Server`.
+- Both examples cap request bodies with `client_max_body_size` as a sample
+  default.
 - Review changes touching network requests, sockets, proxy headers, upstreams, or service endpoints; examples from the scan include sample_tornado_nginx.conf.
 - Review changes touching file, media, JSON, XML, CSV, OCR, or data parsing; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.
 - Review changes touching infrastructure, proxy, cloud, or deployment configuration; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.

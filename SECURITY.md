@@ -27,6 +27,8 @@ Helpful reports include:
 - This repository appears to be a web server configuration sample. The active security scope is the code and documentation on the default branch.
 - The checked-in files are sample-only Nginx configs. They must be adapted and verified with `nginx -t` before use in a live deployment.
 - Both examples should keep `server_tokens off` so Nginx version disclosure is not enabled by default.
+- Both examples should keep an explicit `client_max_body_size` placeholder so
+  copied configs do not inherit an unintended upload/request-body policy.
 - PHP sample includes should stay limited to `sites-enabled/*.conf` so unrelated files are not loaded as config by default.
 - Proxy examples should keep `proxy_hide_header Server` so upstream framework or app server versions are not exposed by default.
 - Review found network clients, sockets, web APIs, proxy headers, or service endpoints; changes in those areas should receive security-focused review before merge.
