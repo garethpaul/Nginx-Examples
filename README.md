@@ -58,6 +58,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   adjust it deliberately for routes that need larger request bodies.
 - Both samples set `X-Content-Type-Options: nosniff` with `always` so copied
   examples do not invite browser MIME sniffing by default.
+- Both samples set `X-Frame-Options: SAMEORIGIN` with `always` as a sample
+  clickjacking guard.
 - `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
 
 ## Testing and Verification
@@ -90,6 +92,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   default.
 - Both examples send `X-Content-Type-Options: nosniff` as a sample browser
   hardening header.
+- Both examples send `X-Frame-Options: SAMEORIGIN` as a sample clickjacking
+  guard.
 - Review changes touching network requests, sockets, proxy headers, upstreams, or service endpoints; examples from the scan include sample_tornado_nginx.conf.
 - Review changes touching file, media, JSON, XML, CSV, OCR, or data parsing; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.
 - Review changes touching infrastructure, proxy, cloud, or deployment configuration; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.

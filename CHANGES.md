@@ -9,6 +9,7 @@
 - Hid upstream `Server` response headers in the Tornado proxy example.
 - Added explicit `client_max_body_size` placeholders to both samples.
 - Added `X-Content-Type-Options: nosniff` headers to both samples.
+- Added `X-Frame-Options: SAMEORIGIN` headers to both samples.
 - Added `try_files $uri =404` to the Tornado static location.
 - Added a placeholder `server_name` and notes for Linux-specific `epoll` and deployment-specific include paths.
 - Limited the PHP sample `sites-enabled` include to `sites-enabled/*.conf`.

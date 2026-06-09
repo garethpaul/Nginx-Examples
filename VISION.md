@@ -26,6 +26,7 @@ Priority:
 - Keep upstream server header disclosure disabled in proxy samples
 - Keep static-file handling explicit with `try_files $uri =404`
 - Keep browser MIME-sniffing protection visible in both samples
+- Keep the sample clickjacking guard visible in both samples
 
 Next priorities:
 
@@ -53,8 +54,8 @@ Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
 Defaults such as `server_tokens off`, `proxy_hide_header Server`, explicit
 forwarded headers, `client_max_body_size`, `X-Content-Type-Options: nosniff`,
-and non-debug logging are part of the baseline. The Tornado static location
-also keeps `try_files $uri =404`.
+`X-Frame-Options: SAMEORIGIN`, and non-debug logging are part of the baseline.
+The Tornado static location also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)
 

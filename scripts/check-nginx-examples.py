@@ -23,6 +23,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-sites-enabled-conf-glob.md",
     "docs/plans/2026-06-09-static-try-files.md",
     "docs/plans/2026-06-09-content-type-nosniff-header.md",
+    "docs/plans/2026-06-09-frame-options-header.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -68,6 +69,8 @@ def main() -> int:
             failures.append(f"{config} must define the sample client_max_body_size limit")
         if "add_header X-Content-Type-Options nosniff always;" not in text:
             failures.append(f"{config} must set the X-Content-Type-Options nosniff header")
+        if "add_header X-Frame-Options SAMEORIGIN always;" not in text:
+            failures.append(f"{config} must set the X-Frame-Options SAMEORIGIN header")
         if re.search(r"error_log\s+\S+\s+debug\s*;", text):
             failures.append(f"{config} must not default to debug error logging")
         if re.search(r"ssl_certificate(_key)?\s+[^;]*(/etc|/home|BEGIN|PRIVATE)", text):
@@ -124,6 +127,7 @@ def main() -> int:
         "sites-enabled/*.conf",
         "try_files $uri =404",
         "X-Content-Type-Options",
+        "X-Frame-Options",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -150,6 +154,10 @@ def main() -> int:
     nosniff_plan = nosniff_plan_path.read_text(encoding="utf-8") if nosniff_plan_path.exists() else ""
     if "status: completed" not in nosniff_plan or "X-Content-Type-Options" not in nosniff_plan:
         failures.append("content type nosniff plan must record status and verification")
+    frame_options_plan_path = ROOT / "docs/plans/2026-06-09-frame-options-header.md"
+    frame_options_plan = frame_options_plan_path.read_text(encoding="utf-8") if frame_options_plan_path.exists() else ""
+    if "status: completed" not in frame_options_plan or "X-Frame-Options" not in frame_options_plan:
+        failures.append("frame options header plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:
