@@ -21,6 +21,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-hide-upstream-server-header.md",
     "docs/plans/2026-06-09-request-body-size-limit.md",
     "docs/plans/2026-06-09-sites-enabled-conf-glob.md",
+    "docs/plans/2026-06-09-static-try-files.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -94,6 +95,7 @@ def main() -> int:
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
         "# Replace with the static root for the deployment host.",
         "root /srv/example-app;",
+        "try_files $uri =404;",
     ]:
         if phrase not in tornado:
             failures.append(f"sample_tornado_nginx.conf must include {phrase}")
@@ -108,7 +110,17 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
     docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
-    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "client_max_body_size", "X-Forwarded-For", "proxy_hide_header Server", "sites-enabled/*.conf"]:
+    for phrase in [
+        "make check",
+        "nginx -t",
+        "sample-only",
+        "server_tokens off",
+        "client_max_body_size",
+        "X-Forwarded-For",
+        "proxy_hide_header Server",
+        "sites-enabled/*.conf",
+        "try_files $uri =404",
+    ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
@@ -126,6 +138,10 @@ def main() -> int:
     body_size_plan = body_size_plan_path.read_text(encoding="utf-8") if body_size_plan_path.exists() else ""
     if "status: completed" not in body_size_plan or "client_max_body_size" not in body_size_plan:
         failures.append("request body size plan must record status and verification")
+    static_plan_path = ROOT / "docs/plans/2026-06-09-static-try-files.md"
+    static_plan = static_plan_path.read_text(encoding="utf-8") if static_plan_path.exists() else ""
+    if "status: completed" not in static_plan or "try_files $uri =404" not in static_plan:
+        failures.append("static try_files plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:
