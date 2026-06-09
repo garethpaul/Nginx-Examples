@@ -33,6 +33,8 @@ Helpful reports include:
 - Proxy examples should keep `proxy_hide_header Server` so upstream framework or app server versions are not exposed by default.
 - Static file locations should keep `try_files $uri =404` so missing files fail
   closed instead of falling through unexpectedly.
+- Examples should keep `X-Content-Type-Options: nosniff` so copied configs do
+  not encourage browser MIME sniffing by default.
 - Review found network clients, sockets, web APIs, proxy headers, or service endpoints; changes in those areas should receive security-focused review before merge.
 - Review found file, document, data, or media parsing flows; changes in those areas should receive security-focused review before merge.
 - Review found infrastructure, deployment, proxy, or cloud configuration; changes in those areas should receive security-focused review before merge.

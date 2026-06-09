@@ -25,6 +25,7 @@ Priority:
 - Keep sample-only guardrails visible in README and checks
 - Keep upstream server header disclosure disabled in proxy samples
 - Keep static-file handling explicit with `try_files $uri =404`
+- Keep browser MIME-sniffing protection visible in both samples
 
 Next priorities:
 
@@ -40,6 +41,7 @@ Contribution rules:
 - Run `make check` and verify config syntax with `nginx -t` where possible.
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
+- Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 
 ## Security
 
@@ -50,8 +52,9 @@ Canonical security policy and reporting:
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
 Defaults such as `server_tokens off`, `proxy_hide_header Server`, explicit
-forwarded headers, `client_max_body_size`, and non-debug logging are part of the
-baseline. The Tornado static location also keeps `try_files $uri =404`.
+forwarded headers, `client_max_body_size`, `X-Content-Type-Options: nosniff`,
+and non-debug logging are part of the baseline. The Tornado static location
+also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)
 
