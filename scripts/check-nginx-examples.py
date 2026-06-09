@@ -24,6 +24,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-static-try-files.md",
     "docs/plans/2026-06-09-content-type-nosniff-header.md",
     "docs/plans/2026-06-09-frame-options-header.md",
+    "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
@@ -72,6 +73,8 @@ def main() -> int:
             failures.append(f"{config} must set the X-Content-Type-Options nosniff header")
         if "add_header X-Frame-Options SAMEORIGIN always;" not in text:
             failures.append(f"{config} must set the X-Frame-Options SAMEORIGIN header")
+        if "add_header Referrer-Policy strict-origin-when-cross-origin always;" not in text:
+            failures.append(f"{config} must set the Referrer-Policy header")
         if re.search(r"error_log\s+\S+\s+debug\s*;", text):
             failures.append(f"{config} must not default to debug error logging")
         if re.search(r"ssl_certificate(_key)?\s+[^;]*(/etc|/home|BEGIN|PRIVATE)", text):
@@ -143,6 +146,7 @@ def main() -> int:
         "try_files $uri =404",
         "X-Content-Type-Options",
         "X-Frame-Options",
+        "Referrer-Policy",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -173,6 +177,10 @@ def main() -> int:
     frame_options_plan = frame_options_plan_path.read_text(encoding="utf-8") if frame_options_plan_path.exists() else ""
     if "status: completed" not in frame_options_plan or "X-Frame-Options" not in frame_options_plan:
         failures.append("frame options header plan must record status and verification")
+    referrer_policy_plan_path = ROOT / "docs/plans/2026-06-09-referrer-policy-header.md"
+    referrer_policy_plan = referrer_policy_plan_path.read_text(encoding="utf-8") if referrer_policy_plan_path.exists() else ""
+    if "status: completed" not in referrer_policy_plan or "Referrer-Policy" not in referrer_policy_plan:
+        failures.append("referrer policy header plan must record status and verification")
     make_gate_plan_path = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
     make_gate_plan = make_gate_plan_path.read_text(encoding="utf-8") if make_gate_plan_path.exists() else ""
     if "status: completed" not in make_gate_plan or "make lint" not in make_gate_plan or "make build" not in make_gate_plan:

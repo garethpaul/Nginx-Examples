@@ -37,6 +37,8 @@ Helpful reports include:
   not encourage browser MIME sniffing by default.
 - Examples should keep `X-Frame-Options: SAMEORIGIN` so copied configs include
   a basic clickjacking guard by default.
+- Examples should keep `Referrer-Policy: strict-origin-when-cross-origin` so
+  copied configs include a basic referrer-leakage guard by default.
 - Review found network clients, sockets, web APIs, proxy headers, or service endpoints; changes in those areas should receive security-focused review before merge.
 - Review found file, document, data, or media parsing flows; changes in those areas should receive security-focused review before merge.
 - Review found infrastructure, deployment, proxy, or cloud configuration; changes in those areas should receive security-focused review before merge.
