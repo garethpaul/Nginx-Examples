@@ -52,7 +52,9 @@ For these Nginx examples, also prioritize reports involving unsafe proxy header 
 
 Dependency updates should come from trusted package managers and should keep lockfiles in sync when lockfiles exist. Do not commit credentials, private keys, tokens, generated secrets, or machine-local configuration. If a vulnerability depends on a compromised package, typosquatting risk, insecure transitive dependency, or unsafe build step, include the package name, affected version, and the path through which it is used.
 
-Run `make check` before publishing config changes, then run `nginx -t` with locally adjusted paths on a system that has Nginx installed.
+Run `make lint`, `make test`, `make build`, and `make check` before publishing
+config changes, then run `nginx -t` with locally adjusted paths on a system
+that has Nginx installed.
 
 ## Safe Research Guidelines
 

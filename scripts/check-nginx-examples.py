@@ -24,6 +24,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-static-try-files.md",
     "docs/plans/2026-06-09-content-type-nosniff-header.md",
     "docs/plans/2026-06-09-frame-options-header.md",
+    "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -115,8 +116,22 @@ def main() -> int:
     if not upstreams or any(host != "127.0.0.1" for host in upstreams):
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
+    makefile = read("Makefile")
+    for phrase in [
+        ".PHONY: build check lint static-check test verify",
+        "check: verify",
+        "verify: static-check",
+        "lint test build: static-check",
+        "PYTHONDONTWRITEBYTECODE=1 $(PYTHON) scripts/check-nginx-examples.py",
+    ]:
+        if phrase not in makefile:
+            failures.append(f"Makefile must include standard gate alias: {phrase}")
+
     docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
     for phrase in [
+        "make lint",
+        "make test",
+        "make build",
         "make check",
         "nginx -t",
         "sample-only",
@@ -158,6 +173,10 @@ def main() -> int:
     frame_options_plan = frame_options_plan_path.read_text(encoding="utf-8") if frame_options_plan_path.exists() else ""
     if "status: completed" not in frame_options_plan or "X-Frame-Options" not in frame_options_plan:
         failures.append("frame options header plan must record status and verification")
+    make_gate_plan_path = ROOT / "docs/plans/2026-06-09-make-gate-aliases.md"
+    make_gate_plan = make_gate_plan_path.read_text(encoding="utf-8") if make_gate_plan_path.exists() else ""
+    if "status: completed" not in make_gate_plan or "make lint" not in make_gate_plan or "make build" not in make_gate_plan:
+        failures.append("make gate alias plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

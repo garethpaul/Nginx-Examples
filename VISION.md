@@ -27,6 +27,8 @@ Priority:
 - Keep static-file handling explicit with `try_files $uri =404`
 - Keep browser MIME-sniffing protection visible in both samples
 - Keep the sample clickjacking guard visible in both samples
+- Keep `make lint`, `make test`, `make build`, and `make check` on the
+  SDK-free static baseline
 
 Next priorities:
 
@@ -39,7 +41,8 @@ Contribution rules:
 
 - One PR = one focused config, comment, or documentation change.
 - Use placeholders for domains, paths, and certificates.
-- Run `make check` and verify config syntax with `nginx -t` where possible.
+- Run `make lint`, `make test`, `make build`, and `make check`, then verify
+  config syntax with `nginx -t` where possible.
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.

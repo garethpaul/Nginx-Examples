@@ -42,6 +42,9 @@ Additional scan context:
 ```bash
 git clone https://github.com/garethpaul/Nginx-Examples.git
 cd Nginx-Examples
+make lint
+make test
+make build
 make check
 ```
 
@@ -64,6 +67,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Testing and Verification
 
+- `make lint`
+- `make test`
+- `make build`
 - `make check`
 - `nginx -t -c /path/to/adjusted/nginx.conf` on a host with Nginx installed
 
@@ -101,8 +107,11 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 ## Maintenance Notes
 
-- Run `make check` before changing sample configs.
+- Run `make lint`, `make test`, `make build`, and `make check` before changing
+  sample configs.
 - Run `nginx -t` on a host with Nginx installed after adapting local paths.
+- See `docs/plans/2026-06-09-make-gate-aliases.md` for the local verification
+  gate aliases.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 
