@@ -19,6 +19,7 @@ REQUIRED = [
     "VISION.md",
     "docs/plans/2026-06-08-nginx-examples-baseline.md",
     "docs/plans/2026-06-09-hide-upstream-server-header.md",
+    "docs/plans/2026-06-09-sites-enabled-conf-glob.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -72,9 +73,12 @@ def main() -> int:
         "tcp_nodelay     on;",
         "application/javascript",
         "# Adjust this include path for the deployment host.",
+        "include /usr/local/nginx/sites-enabled/*.conf;",
     ]:
         if phrase not in php:
             failures.append(f"sample_php_nginx.conf must include {phrase}")
+    if "include /usr/local/nginx/sites-enabled/*;" in php:
+        failures.append("sample_php_nginx.conf must not include every file from sites-enabled")
 
     tornado = read("sample_tornado_nginx.conf")
     for phrase in [
@@ -101,7 +105,7 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
     docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
-    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "X-Forwarded-For", "proxy_hide_header Server"]:
+    for phrase in ["make check", "nginx -t", "sample-only", "server_tokens off", "X-Forwarded-For", "proxy_hide_header Server", "sites-enabled/*.conf"]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
@@ -111,6 +115,10 @@ def main() -> int:
     header_plan = read("docs/plans/2026-06-09-hide-upstream-server-header.md")
     if "status: completed" not in header_plan or "proxy_hide_header Server" not in header_plan:
         failures.append("upstream header plan must record status and verification")
+    include_plan_path = ROOT / "docs/plans/2026-06-09-sites-enabled-conf-glob.md"
+    include_plan = include_plan_path.read_text(encoding="utf-8") if include_plan_path.exists() else ""
+    if "status: completed" not in include_plan or "sites-enabled/*.conf" not in include_plan:
+        failures.append("sites-enabled include plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

@@ -50,7 +50,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 ## Running or Using the Project
 
 - Treat both configs as sample-only starting points, not production-ready drop-ins.
-- `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled` include path for the deployment host.
+- `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled/*.conf` include path for the deployment host.
 - `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
 - `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
 
@@ -62,6 +62,8 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 The checked-in configs use host-specific paths such as `mime.types`, log files,
 static roots, and include directories. Adjust those paths before running
 `nginx -t` or installing the examples.
+The PHP sample keeps `sites-enabled/*.conf` so backup files or stray files are
+not included as config by default.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
