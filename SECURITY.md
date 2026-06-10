@@ -64,6 +64,9 @@ Run `make lint`, `make test`, `make build`, and `make check` before publishing
 config changes, then run `nginx -t` with locally adjusted paths on a system
 that has Nginx installed.
 
+The pinned Linux workflow runs only the static configuration/security baseline;
+it does not replace deployment-host `nginx -t` with adapted paths and modules.
+
 ## Safe Research Guidelines
 
 Good-faith research is welcome when it stays within these boundaries:

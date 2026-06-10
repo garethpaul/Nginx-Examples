@@ -73,6 +73,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - `make test`
 - `make build`
 - `make check`
+- Pinned `ubuntu-24.04` GitHub Actions runs the static configuration/security
+  baseline on Python 3.12. Deployment-host `nginx -t` remains required after
+  adapting local paths and modules.
 - `nginx -t -c /path/to/adjusted/nginx.conf` on a host with Nginx installed
 
 The checked-in configs use host-specific paths such as `mime.types`, log files,

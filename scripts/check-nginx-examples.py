@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
 REQUIRED = [
     ".gitignore",
+    ".github/workflows/check.yml",
     "CHANGES.md",
     "Makefile",
     "README",
@@ -27,6 +28,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/plans/2026-06-10-forwarded-host-header.md",
+    "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -194,6 +196,23 @@ def main() -> int:
     forwarded_host_plan = forwarded_host_plan_path.read_text(encoding="utf-8") if forwarded_host_plan_path.exists() else ""
     if "status: completed" not in forwarded_host_plan or "X-Forwarded-Host" not in forwarded_host_plan:
         failures.append("forwarded host header plan must record status and verification")
+
+    hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
+    workflow = read(".github/workflows/check.yml")
+    if "status: completed" not in hosted_plan or "make check" not in hosted_plan:
+        failures.append("hosted static validation plan must record status and verification")
+    for expected in [
+        "permissions:\n  contents: read",
+        "cancel-in-progress: true",
+        "runs-on: ubuntu-24.04",
+        "timeout-minutes: 10",
+        "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+        "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
+        'python-version: "3.12"',
+        "run: make check",
+    ]:
+        if expected not in workflow:
+            failures.append(f"Check workflow must keep {expected}")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

@@ -31,6 +31,7 @@ Priority:
 - Keep the sample referrer policy guard visible in both samples
 - Keep `make lint`, `make test`, `make build`, and `make check` on the
   SDK-free static baseline
+- Keep that static baseline pinned and read-only in hosted Linux validation
 
 Next priorities:
 
