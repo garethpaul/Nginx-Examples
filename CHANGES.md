@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-10
+
+- Added an `X-Forwarded-Host` proxy header sourced from `$host` so Tornado
+  upstreams receive normalized host metadata.
+
 ## 2026-06-08
 
 - Added `make check` static verification for the sample Nginx configs.

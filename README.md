@@ -54,7 +54,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 - Treat both configs as sample-only starting points, not production-ready drop-ins.
 - `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled/*.conf` include path for the deployment host.
-- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
+- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-Host`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
 - The Tornado static location uses `try_files $uri =404;` so missing static
   assets fail closed instead of falling through to another handler.
 - Both samples set `client_max_body_size 1m;` as a conservative placeholder;
@@ -107,7 +107,11 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Review changes touching network requests, sockets, proxy headers, upstreams, or service endpoints; examples from the scan include sample_tornado_nginx.conf.
 - Review changes touching file, media, JSON, XML, CSV, OCR, or data parsing; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.
 - Review changes touching infrastructure, proxy, cloud, or deployment configuration; examples from the scan include sample_php_nginx.conf, sample_tornado_nginx.conf.
-- Keep forwarded-header handling explicit; `X-Forwarded-For` and `X-Forwarded-Proto` are part of the Tornado proxy example.
+- Keep forwarded-header handling explicit; `X-Forwarded-Host`,
+  `X-Forwarded-For`, and `X-Forwarded-Proto` are part of the Tornado proxy
+  example.
+- Keep `X-Forwarded-Host` sourced from Nginx `$host`, not raw client
+  `$http_host`.
 
 ## Maintenance Notes
 
@@ -116,6 +120,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Run `nginx -t` on a host with Nginx installed after adapting local paths.
 - See `docs/plans/2026-06-09-make-gate-aliases.md` for the local verification
   gate aliases.
+- See `docs/plans/2026-06-10-forwarded-host-header.md` for the forwarded host
+  header guardrail.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 

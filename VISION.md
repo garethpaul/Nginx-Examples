@@ -24,6 +24,7 @@ Priority:
 - Maintain security policy for the examples
 - Keep sample-only guardrails visible in README and checks
 - Keep upstream server header disclosure disabled in proxy samples
+- Keep `X-Forwarded-Host` tied to Nginx `$host` in proxy samples
 - Keep static-file handling explicit with `try_files $uri =404`
 - Keep browser MIME-sniffing protection visible in both samples
 - Keep the sample clickjacking guard visible in both samples
@@ -46,6 +47,7 @@ Contribution rules:
   config syntax with `nginx -t` where possible.
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
+- Preserve `X-Forwarded-Host` when changing Tornado proxy headers.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
   sample headers.
@@ -59,9 +61,10 @@ Canonical security policy and reporting:
 Web server examples can be copied into production. They should avoid insecure
 defaults, real secrets, and misleading claims about readiness.
 Defaults such as `server_tokens off`, `proxy_hide_header Server`, explicit
-forwarded headers, `client_max_body_size`, `X-Content-Type-Options: nosniff`,
-`X-Frame-Options: SAMEORIGIN`, `Referrer-Policy: strict-origin-when-cross-origin`,
-and non-debug logging are part of the baseline.
+forwarded headers including `X-Forwarded-Host`, `client_max_body_size`,
+`X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
+`Referrer-Policy: strict-origin-when-cross-origin`, and non-debug logging are
+part of the baseline.
 The Tornado static location also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)

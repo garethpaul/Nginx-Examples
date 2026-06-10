@@ -26,6 +26,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-frame-options-header.md",
     "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
+    "docs/plans/2026-06-10-forwarded-host-header.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -98,6 +99,7 @@ def main() -> int:
     for phrase in [
         "server_name example.local;",
         "proxy_set_header Host $host;",
+        "proxy_set_header X-Forwarded-Host $host;",
         "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;",
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_hide_header Server;",
@@ -113,6 +115,8 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf must use placeholder paths, not host-specific home paths")
     if "proxy_set_header Host $http_host;" in tornado:
         failures.append("sample_tornado_nginx.conf must not trust raw client Host headers")
+    if "proxy_set_header X-Forwarded-Host $http_host;" in tornado:
+        failures.append("sample_tornado_nginx.conf must not forward raw client Host headers")
     if "proxy_pass_header Server;" in tornado:
         failures.append("sample_tornado_nginx.conf must not pass upstream Server headers")
     upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
@@ -141,6 +145,7 @@ def main() -> int:
         "server_tokens off",
         "client_max_body_size",
         "X-Forwarded-For",
+        "X-Forwarded-Host",
         "proxy_hide_header Server",
         "sites-enabled/*.conf",
         "try_files $uri =404",
@@ -185,6 +190,10 @@ def main() -> int:
     make_gate_plan = make_gate_plan_path.read_text(encoding="utf-8") if make_gate_plan_path.exists() else ""
     if "status: completed" not in make_gate_plan or "make lint" not in make_gate_plan or "make build" not in make_gate_plan:
         failures.append("make gate alias plan must record status and verification")
+    forwarded_host_plan_path = ROOT / "docs/plans/2026-06-10-forwarded-host-header.md"
+    forwarded_host_plan = forwarded_host_plan_path.read_text(encoding="utf-8") if forwarded_host_plan_path.exists() else ""
+    if "status: completed" not in forwarded_host_plan or "X-Forwarded-Host" not in forwarded_host_plan:
+        failures.append("forwarded host header plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

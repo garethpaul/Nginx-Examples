@@ -31,6 +31,9 @@ Helpful reports include:
   copied configs do not inherit an unintended upload/request-body policy.
 - PHP sample includes should stay limited to `sites-enabled/*.conf` so unrelated files are not loaded as config by default.
 - Proxy examples should keep `proxy_hide_header Server` so upstream framework or app server versions are not exposed by default.
+- Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
+  upstream apps receive a normalized host value instead of raw client
+  `$http_host`.
 - Static file locations should keep `try_files $uri =404` so missing files fail
   closed instead of falling through unexpectedly.
 - Examples should keep `X-Content-Type-Options: nosniff` so copied configs do
@@ -48,7 +51,10 @@ Helpful reports include:
 
 For web services, APIs, sockets, or scraping workflows, prioritize reports involving authentication bypass, authorization errors, injection, server-side request forgery, unsafe deserialization, credential leakage, data exposure, or denial-of-service conditions. Use test accounts and minimal proof-of-concept traffic only.
 
-For these Nginx examples, also prioritize reports involving unsafe proxy header handling, untrusted upstreams, path traversal through static roots, accidental debug logging, certificate path exposure, or private infrastructure details.
+For these Nginx examples, also prioritize reports involving unsafe proxy header
+handling, especially raw host forwarding, untrusted upstreams, path traversal
+through static roots, accidental debug logging, certificate path exposure, or
+private infrastructure details.
 
 ## Dependency and Supply Chain Security
 
