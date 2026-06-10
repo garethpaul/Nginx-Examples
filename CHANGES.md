@@ -2,6 +2,8 @@
 
 ## 2026-06-10
 
+- Added a five-second upstream connect timeout to bound failed Tornado backend
+  connection attempts while preserving the existing response read window.
 - Added pinned, read-only Python 3.12 hosted validation for the static Nginx
   configuration and security baseline.
 - Added an `X-Forwarded-Host` proxy header sourced from `$host` so Tornado

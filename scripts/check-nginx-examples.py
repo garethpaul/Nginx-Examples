@@ -28,6 +28,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/plans/2026-06-10-forwarded-host-header.md",
+    "docs/plans/2026-06-10-upstream-connect-timeout.md",
     "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
@@ -106,6 +107,7 @@ def main() -> int:
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_hide_header Server;",
         "proxy_next_upstream error;",
+        "proxy_connect_timeout 5s;",
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
         "# Replace with the static root for the deployment host.",
         "root /srv/example-app;",
@@ -196,6 +198,9 @@ def main() -> int:
     forwarded_host_plan = forwarded_host_plan_path.read_text(encoding="utf-8") if forwarded_host_plan_path.exists() else ""
     if "status: completed" not in forwarded_host_plan or "X-Forwarded-Host" not in forwarded_host_plan:
         failures.append("forwarded host header plan must record status and verification")
+    connect_timeout_plan = read("docs/plans/2026-06-10-upstream-connect-timeout.md")
+    if "status: completed" not in connect_timeout_plan or "proxy_connect_timeout 5s" not in connect_timeout_plan:
+        failures.append("upstream connect timeout plan must record status and verification")
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")

@@ -34,6 +34,8 @@ Helpful reports include:
 - Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
   upstream apps receive a normalized host value instead of raw client
   `$http_host`.
+- The upstream connect timeout should bound failed loopback backend connection
+  attempts; deployments should review the five-second sample value.
 - Static file locations should keep `try_files $uri =404` so missing files fail
   closed instead of falling through unexpectedly.
 - Examples should keep `X-Content-Type-Options: nosniff` so copied configs do
