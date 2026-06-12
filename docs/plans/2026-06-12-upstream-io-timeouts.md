@@ -52,7 +52,11 @@ Completed locally on 2026-06-12:
   were each rejected by the static contract
 - `git diff --check`
 
-Hosted push and pull-request checks will be recorded after the branch is pushed.
+Completed on GitHub Actions for implementation head
+`e81f1630c0b6d9a0e798b85d8c4d943847991378`:
+
+- push run `27397824585`: success
+- pull-request run `27397825722`: success
 
 ## Boundaries
 
