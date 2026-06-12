@@ -26,6 +26,9 @@ Helpful reports include:
 
 - This repository appears to be a web server configuration sample. The active security scope is the code and documentation on the default branch.
 - The checked-in files are sample-only Nginx configs. They must be adapted and verified with `nginx -t` before use in a live deployment.
+- Operators should not install the checked-in configs directly. Copy them to a
+  host-specific test path, adjust local paths and names, and verify the adapted
+  copy first.
 - Both examples should keep `server_tokens off` so Nginx version disclosure is not enabled by default.
 - Both examples should keep an explicit `client_max_body_size` placeholder so
   copied configs do not inherit an unintended upload/request-body policy.
@@ -34,6 +37,9 @@ Helpful reports include:
 - Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
   upstream apps receive a normalized host value instead of raw client
   `$http_host`.
+- Tornado upstreams should remain loopback-only upstream placeholders in this
+  repository. Do not add public HTTP upstreams, real hostnames, or private
+  infrastructure details without a separate proxy and TLS design.
 - The upstream connect timeout should bound failed loopback backend connection
   attempts; deployments should review the five-second sample value.
 - Static file locations should keep `try_files $uri =404` so missing files fail

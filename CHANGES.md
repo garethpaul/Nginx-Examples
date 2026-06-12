@@ -2,6 +2,9 @@
 
 ## 2026-06-10
 
+- Clarified setup guidance and loopback-only upstream placeholders so the
+  checked-in configs are not treated as direct production installs or public
+  HTTP upstream integrations.
 - Added a five-second upstream connect timeout to bound failed Tornado backend
   connection attempts while preserving the existing response read window.
 - Added pinned, read-only Python 3.12 hosted validation for the static Nginx

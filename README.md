@@ -83,10 +83,17 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 The checked-in configs use host-specific paths such as `mime.types`, log files,
 static roots, and include directories. Adjust those paths before running
 `nginx -t` or installing the examples.
+Do not install the checked-in configs directly. Copy them to a host-specific
+test path, replace placeholder paths and names, run `nginx -t`, then install the
+adapted copy.
 The PHP sample keeps `sites-enabled/*.conf` so backup files or stray files are
 not included as config by default.
 Both samples include `client_max_body_size` so copied examples do not silently
 inherit an overly broad upload/request-body policy.
+The Tornado example uses loopback-only upstream placeholders. Treat
+`http://frontends` as the local Nginx upstream group name, not a public HTTP
+integration, and do not point the sample at public HTTP upstreams without a
+separate proxy, TLS, and trust-boundary design.
 
 When the required SDK or runtime is unavailable, use static checks and source review first, then verify on a machine that has the matching platform toolchain.
 
@@ -128,6 +135,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   gate aliases.
 - See `docs/plans/2026-06-10-forwarded-host-header.md` for the forwarded host
   header guardrail.
+- See `docs/plans/2026-06-10-setup-and-loopback-boundary.md` for setup and
+  loopback-only upstream placeholders.
 - See `SECURITY.md` for vulnerability reporting and safe research guidance.
 - See `VISION.md` for project direction and contribution guardrails.
 
