@@ -39,7 +39,14 @@ Files:
 Require connect/read/send timeout values, completed evidence, and deployment
 tuning guidance.
 
-## Verification
+## Work Completed
+
+- Preserved the five-second upstream connect timeout.
+- Reduced the upstream response read timeout to 30 seconds.
+- Added an explicit 30-second upstream request-send timeout.
+- Preserved upstream membership and the existing error-only retry policy.
+
+## Verification Completed
 
 Completed locally on 2026-06-12:
 
@@ -52,11 +59,14 @@ Completed locally on 2026-06-12:
   were each rejected by the static contract
 - `git diff --check`
 
-Completed on GitHub Actions for implementation head
-`e81f1630c0b6d9a0e798b85d8c4d943847991378`:
+Completed on GitHub Actions for final head
+`2d892be8619d5b95d017a8a5f48ae7e67ddf6d0e`:
 
-- push run `27397824585`: success
-- pull-request run `27397825722`: success
+- push run `27397838809`: success
+- pull-request run `27397840573`: success
+
+The verified configuration preserves `proxy_connect_timeout 5s;`,
+`proxy_read_timeout 30s;`, and `proxy_send_timeout 30s;`.
 
 ## Boundaries
 
