@@ -31,6 +31,9 @@ Priority:
 - Keep the sample referrer policy guard visible in both samples
 - Keep `make lint`, `make test`, `make build`, and `make check` on the
   SDK-free static baseline
+- Keep setup docs clear that operators should not install the checked-in
+  configs directly
+- Keep Tornado proxy examples scoped to loopback-only upstream placeholders
 
 Next priorities:
 

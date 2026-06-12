@@ -27,6 +27,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/plans/2026-06-10-forwarded-host-header.md",
+    "docs/plans/2026-06-10-setup-and-loopback-boundary.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -152,6 +153,9 @@ def main() -> int:
         "X-Content-Type-Options",
         "X-Frame-Options",
         "Referrer-Policy",
+        "loopback-only upstream placeholders",
+        "Do not install the checked-in configs directly",
+        "public HTTP upstreams",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -194,6 +198,10 @@ def main() -> int:
     forwarded_host_plan = forwarded_host_plan_path.read_text(encoding="utf-8") if forwarded_host_plan_path.exists() else ""
     if "status: completed" not in forwarded_host_plan or "X-Forwarded-Host" not in forwarded_host_plan:
         failures.append("forwarded host header plan must record status and verification")
+    setup_boundary_plan_path = ROOT / "docs/plans/2026-06-10-setup-and-loopback-boundary.md"
+    setup_boundary_plan = setup_boundary_plan_path.read_text(encoding="utf-8") if setup_boundary_plan_path.exists() else ""
+    if "status: completed" not in setup_boundary_plan or "loopback-only upstream placeholders" not in setup_boundary_plan:
+        failures.append("setup and loopback boundary plan must record status and verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

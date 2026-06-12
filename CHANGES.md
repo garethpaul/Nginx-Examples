@@ -2,6 +2,9 @@
 
 ## 2026-06-10
 
+- Clarified setup guidance and loopback-only upstream placeholders so the
+  checked-in configs are not treated as direct production installs or public
+  HTTP upstream integrations.
 - Added an `X-Forwarded-Host` proxy header sourced from `$host` so Tornado
   upstreams receive normalized host metadata.
 
