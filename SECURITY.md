@@ -40,6 +40,8 @@ Helpful reports include:
 - Tornado upstreams should remain loopback-only upstream placeholders in this
   repository. Do not add public HTTP upstreams, real hostnames, or private
   infrastructure details without a separate proxy and TLS design.
+- The upstream connect timeout should bound failed loopback backend connection
+  attempts; deployments should review the five-second sample value.
 - Static file locations should keep `try_files $uri =404` so missing files fail
   closed instead of falling through unexpectedly.
 - Examples should keep `X-Content-Type-Options: nosniff` so copied configs do
@@ -69,6 +71,9 @@ Dependency updates should come from trusted package managers and should keep loc
 Run `make lint`, `make test`, `make build`, and `make check` before publishing
 config changes, then run `nginx -t` with locally adjusted paths on a system
 that has Nginx installed.
+
+The pinned Linux workflow runs only the static configuration/security baseline;
+it does not replace deployment-host `nginx -t` with adapted paths and modules.
 
 ## Safe Research Guidelines
 

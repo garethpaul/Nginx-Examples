@@ -11,6 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
 REQUIRED = [
     ".gitignore",
+    ".github/CODEOWNERS",
+    ".github/workflows/check.yml",
     "CHANGES.md",
     "Makefile",
     "README",
@@ -28,6 +30,8 @@ REQUIRED = [
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/plans/2026-06-10-forwarded-host-header.md",
     "docs/plans/2026-06-10-setup-and-loopback-boundary.md",
+    "docs/plans/2026-06-10-upstream-connect-timeout.md",
+    "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -105,6 +109,7 @@ def main() -> int:
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_hide_header Server;",
         "proxy_next_upstream error;",
+        "proxy_connect_timeout 5s;",
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
         "# Replace with the static root for the deployment host.",
         "root /srv/example-app;",
@@ -202,6 +207,33 @@ def main() -> int:
     setup_boundary_plan = setup_boundary_plan_path.read_text(encoding="utf-8") if setup_boundary_plan_path.exists() else ""
     if "status: completed" not in setup_boundary_plan or "loopback-only upstream placeholders" not in setup_boundary_plan:
         failures.append("setup and loopback boundary plan must record status and verification")
+    connect_timeout_plan = read("docs/plans/2026-06-10-upstream-connect-timeout.md")
+    if "status: completed" not in connect_timeout_plan or "proxy_connect_timeout 5s" not in connect_timeout_plan:
+        failures.append("upstream connect timeout plan must record status and verification")
+
+    hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
+    workflow = read(".github/workflows/check.yml")
+    codeowners = read(".github/CODEOWNERS")
+    if "status: completed" not in hosted_plan or "make check" not in hosted_plan:
+        failures.append("hosted static validation plan must record status and verification")
+    for expected in [
+        "permissions:\n  contents: read",
+        "cancel-in-progress: true",
+        "runs-on: ubuntu-24.04",
+        "timeout-minutes: 10",
+        "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
+        "persist-credentials: false",
+        "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
+        'python-version: "3.12"',
+        "run: make check",
+    ]:
+        if expected not in workflow:
+            failures.append(f"Check workflow must keep {expected}")
+    workflow_files = sorted(str(path.relative_to(ROOT)) for path in (ROOT / ".github/workflows").rglob("*") if path.is_file())
+    if workflow_files != [".github/workflows/check.yml"]:
+        failures.append("check.yml must be the repository's only hosted workflow")
+    if codeowners.strip() != "* @garethpaul":
+        failures.append("CODEOWNERS must assign the repository to @garethpaul")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:

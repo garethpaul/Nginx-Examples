@@ -18,6 +18,7 @@ Priority:
 
 - Preserve PHP and Tornado example configuration files
 - Keep logging, gzip, proxy, and upstream settings easy to inspect
+- Keep the upstream connect timeout explicit in the Tornado proxy sample
 - Keep PHP sample includes limited to `sites-enabled/*.conf`
 - Keep request body size limits explicit in both samples
 - Avoid embedding real domain names, certificates, or private upstreams
@@ -34,6 +35,7 @@ Priority:
 - Keep setup docs clear that operators should not install the checked-in
   configs directly
 - Keep Tornado proxy examples scoped to loopback-only upstream placeholders
+- Keep that static baseline pinned and read-only in hosted Linux validation
 
 Next priorities:
 
@@ -54,6 +56,7 @@ Contribution rules:
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
   sample headers.
+- Preserve the upstream connect timeout when changing Tornado proxy behavior.
 
 ## Security
 
