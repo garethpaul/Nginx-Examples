@@ -30,6 +30,7 @@ REQUIRED = [
     "docs/plans/2026-06-10-forwarded-host-header.md",
     "docs/plans/2026-06-10-upstream-connect-timeout.md",
     "docs/plans/2026-06-10-hosted-static-validation.md",
+    "docs/plans/2026-06-12-upstream-io-timeouts.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -108,6 +109,8 @@ def main() -> int:
         "proxy_hide_header Server;",
         "proxy_next_upstream error;",
         "proxy_connect_timeout 5s;",
+        "proxy_read_timeout 30s;",
+        "proxy_send_timeout 30s;",
         "# Linux-specific; remove this directive on platforms that do not support epoll.",
         "# Replace with the static root for the deployment host.",
         "root /srv/example-app;",
@@ -156,6 +159,7 @@ def main() -> int:
         "X-Content-Type-Options",
         "X-Frame-Options",
         "Referrer-Policy",
+        "upstream I/O timeouts",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -201,6 +205,9 @@ def main() -> int:
     connect_timeout_plan = read("docs/plans/2026-06-10-upstream-connect-timeout.md")
     if "status: completed" not in connect_timeout_plan or "proxy_connect_timeout 5s" not in connect_timeout_plan:
         failures.append("upstream connect timeout plan must record status and verification")
+    io_timeout_plan = read("docs/plans/2026-06-12-upstream-io-timeouts.md")
+    if "status: completed" not in io_timeout_plan or "hostile mutations" not in io_timeout_plan:
+        failures.append("upstream I/O timeout plan must record completed verification")
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")

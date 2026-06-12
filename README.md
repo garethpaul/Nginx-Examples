@@ -58,7 +58,9 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 - The Tornado static location uses `try_files $uri =404;` so missing static
   assets fail closed instead of falling through to another handler.
 - The Tornado upstream connect timeout limits failed loopback connection setup
-  to five seconds while preserving the longer application response window.
+  to five seconds.
+- Upstream I/O timeouts bound both proxy reads and request sends at 30 seconds;
+  deployments should tune these sample values for expected workloads.
 - Both samples set `client_max_body_size 1m;` as a conservative placeholder;
   adjust it deliberately for routes that need larger request bodies.
 - Both samples set `X-Content-Type-Options: nosniff` with `always` so copied
@@ -100,6 +102,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Both examples disable `server_tokens` with `server_tokens off`.
 - The Tornado proxy example also hides upstream `Server` response headers with `proxy_hide_header Server`.
 - Preserve the upstream connect timeout or document a deployment-specific replacement.
+- Preserve explicit upstream I/O timeouts or document deployment-specific read
+  and send values.
 - The Tornado static location should keep `try_files $uri =404;` before use in
   live deployments.
 - Both examples cap request bodies with `client_max_body_size` as a sample
