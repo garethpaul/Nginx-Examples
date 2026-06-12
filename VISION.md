@@ -34,6 +34,7 @@ Priority:
 - Keep `make lint`, `make test`, `make build`, and `make check` on the
   SDK-free static baseline
 - Keep that static baseline pinned and read-only in hosted Linux validation
+- Keep hosted source retrieval credential-free after checkout
 
 Next priorities:
 
