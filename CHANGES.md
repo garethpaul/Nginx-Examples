@@ -2,6 +2,7 @@
 
 ## 2026-06-10
 
+- Added 30-second upstream I/O timeouts for Tornado proxy reads and sends.
 - Added a five-second upstream connect timeout to bound failed Tornado backend
   connection attempts while preserving the existing response read window.
 - Added pinned, read-only Python 3.12 hosted validation for the static Nginx

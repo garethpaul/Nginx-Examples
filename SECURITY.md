@@ -36,6 +36,8 @@ Helpful reports include:
   `$http_host`.
 - The upstream connect timeout should bound failed loopback backend connection
   attempts; deployments should review the five-second sample value.
+- Upstream I/O timeouts should bound proxy reads and sends while remaining
+  explicitly tunable for deployment workloads.
 - Static file locations should keep `try_files $uri =404` so missing files fail
   closed instead of falling through unexpectedly.
 - Examples should keep `X-Content-Type-Options: nosniff` so copied configs do

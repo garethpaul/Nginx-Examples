@@ -1,6 +1,6 @@
 # Upstream I/O Timeouts
 
-status: planned
+status: completed
 
 ## Context
 
@@ -41,14 +41,18 @@ tuning guidance.
 
 ## Verification
 
+Completed locally on 2026-06-12:
+
 - `python3 -m py_compile scripts/check-nginx-examples.py`
 - `make lint`
 - `make test`
 - `make build`
 - `make check`
-- hostile mutations removing or lengthening read/send timeouts
+- hostile mutations lengthening the read timeout or removing the send timeout
+  were each rejected by the static contract
 - `git diff --check`
-- hosted push and pull-request checks
+
+Hosted push and pull-request checks will be recorded after the branch is pushed.
 
 ## Boundaries
 
