@@ -31,6 +31,7 @@ REQUIRED = [
     "docs/plans/2026-06-10-upstream-connect-timeout.md",
     "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/plans/2026-06-12-upstream-io-timeouts.md",
+    "docs/plans/2026-06-12-checkout-credential-boundary.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -38,6 +39,14 @@ REQUIRED = [
 
 def read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8", errors="replace")
+
+
+def markdown_section(text: str, heading: str) -> str:
+    match = re.search(
+        rf"(?ms)^## {re.escape(heading)}\s*$\n(.*?)(?=^## |\Z)",
+        text,
+    )
+    return match.group(1).strip() if match else ""
 
 
 def strip_comments(text: str) -> str:
@@ -206,8 +215,31 @@ def main() -> int:
     if "status: completed" not in connect_timeout_plan or "proxy_connect_timeout 5s" not in connect_timeout_plan:
         failures.append("upstream connect timeout plan must record status and verification")
     io_timeout_plan = read("docs/plans/2026-06-12-upstream-io-timeouts.md")
-    if "status: completed" not in io_timeout_plan or "hostile mutations" not in io_timeout_plan:
+    io_timeout_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", io_timeout_plan)
+    io_timeout_work = markdown_section(io_timeout_plan, "Work Completed")
+    io_timeout_verification = markdown_section(io_timeout_plan, "Verification Completed")
+    if io_timeout_status != ["completed"] or not io_timeout_work:
+        failures.append("upstream I/O timeout plan must record one completed status and completed work")
+    if not io_timeout_verification or re.search(
+        r"(?i)\b(?:pending|todo|tbd|not run)\b", io_timeout_verification
+    ):
         failures.append("upstream I/O timeout plan must record completed verification")
+    for evidence in [
+        "python3 -m py_compile scripts/check-nginx-examples.py",
+        "make lint",
+        "make test",
+        "make build",
+        "make check",
+        "git diff --check",
+        "27397838809",
+        "27397840573",
+        "2d892be8619d5b95d017a8a5f48ae7e67ddf6d0e",
+        "proxy_connect_timeout 5s;",
+        "proxy_read_timeout 30s;",
+        "proxy_send_timeout 30s;",
+    ]:
+        if evidence not in io_timeout_verification:
+            failures.append(f"upstream I/O timeout verification must record {evidence}")
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")
@@ -225,6 +257,37 @@ def main() -> int:
     ]:
         if expected not in workflow:
             failures.append(f"Check workflow must keep {expected}")
+    workflow_files = sorted(
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / ".github/workflows").iterdir()
+        if path.is_file()
+    )
+    checkout_step = (
+        "      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10\n"
+        "        with:\n"
+        "          persist-credentials: false"
+    )
+    if workflow_files != [".github/workflows/check.yml"]:
+        failures.append("workflow inventory must contain only .github/workflows/check.yml")
+    if workflow.count("actions/checkout@") != 1 or checkout_step not in workflow:
+        failures.append("Check workflow must use one pinned credential-free checkout")
+    if workflow.count("persist-credentials:") != 1 or "persist-credentials: true" in workflow:
+        failures.append("Check workflow must not persist checkout credentials")
+    checkout_plan = read("docs/plans/2026-06-12-checkout-credential-boundary.md")
+    if (
+        "status: completed" not in checkout_plan.lower()
+        or "persist-credentials: false" not in checkout_plan
+        or "hostile mutations rejected" not in checkout_plan
+    ):
+        failures.append("checkout credential plan must record completed verification")
+    guidance = " ".join(
+        "\n".join(read(path) for path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]).split()
+    ).lower()
+    if (
+        "checkout credentials are not persisted" not in guidance
+        or "credential-free checkout" not in guidance
+    ):
+        failures.append("repository guidance must document the credential-free checkout boundary")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:
