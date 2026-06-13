@@ -32,6 +32,7 @@ REQUIRED = [
     "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/plans/2026-06-12-upstream-io-timeouts.md",
     "docs/plans/2026-06-12-checkout-credential-boundary.md",
+    "docs/plans/2026-06-13-sample-configuration-guidance.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -44,6 +45,14 @@ def read(path: str) -> str:
 def markdown_section(text: str, heading: str) -> str:
     match = re.search(
         rf"(?ms)^## {re.escape(heading)}\s*$\n(.*?)(?=^## |\Z)",
+        text,
+    )
+    return match.group(1).strip() if match else ""
+
+
+def markdown_subsection(text: str, heading: str) -> str:
+    match = re.search(
+        rf"(?ms)^### {re.escape(heading)}\s*$\n(.*?)(?=^### |^## |\Z)",
         text,
     )
     return match.group(1).strip() if match else ""
@@ -173,6 +182,44 @@ def main() -> int:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
+    readme = read("README.md")
+    normalized_readme = " ".join(readme.split())
+    php_guidance = " ".join(markdown_subsection(readme, "`sample_php_nginx.conf`").split())
+    tornado_guidance = " ".join(markdown_subsection(readme, "`sample_tornado_nginx.conf`").split())
+    adaptation_guidance = " ".join(markdown_section(readme, "Production Adaptation Checklist").split())
+    guidance_contracts = {
+        "README sample-only boundary": (
+            normalized_readme,
+            ["they are not a production capacity, routing, or security policy"],
+        ),
+        "PHP sample guidance": (
+            php_guidance,
+            ["service account", "sites-enabled/*.conf", "FastCGI upstreams", "certificate placeholders"],
+        ),
+        "Tornado sample guidance": (
+            tornado_guidance,
+            ["loopback ports", "example.local", "/srv/example-app", "upstream I/O timeouts", "use epoll;"],
+        ),
+        "production adaptation checklist": (
+            adaptation_guidance,
+            [
+                "domains",
+                "filesystem paths",
+                "service users",
+                "file permissions",
+                "forwarded-header trust",
+                "Run deployment-host `nginx -t` against the fully adapted configuration",
+            ],
+        ),
+    }
+    for contract, (section, phrases) in guidance_contracts.items():
+        if not section:
+            failures.append(f"README must include {contract}")
+            continue
+        for phrase in phrases:
+            if phrase not in section:
+                failures.append(f"{contract} must include {phrase}")
+
     plan = read("docs/plans/2026-06-08-nginx-examples-baseline.md")
     if "status: completed" not in plan or "make check" not in plan:
         failures.append("completed plan must record status and verification")
@@ -240,6 +287,29 @@ def main() -> int:
     ]:
         if evidence not in io_timeout_verification:
             failures.append(f"upstream I/O timeout verification must record {evidence}")
+
+    guidance_plan = read("docs/plans/2026-06-13-sample-configuration-guidance.md")
+    guidance_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", guidance_plan)
+    guidance_work = markdown_section(guidance_plan, "Work Completed")
+    guidance_verification = markdown_section(guidance_plan, "Verification Completed")
+    if guidance_status != ["completed"] or not guidance_work:
+        failures.append("sample configuration guidance plan must record completed status and work")
+    if not guidance_verification or re.search(
+        r"(?i)\b(?:pending|todo|tbd|not run)\b", guidance_verification
+    ):
+        failures.append("sample configuration guidance plan must record completed verification")
+    for evidence in [
+        "python3 -m py_compile scripts/check-nginx-examples.py",
+        "make lint",
+        "make test",
+        "make build",
+        "make check",
+        "external working directory",
+        "hostile mutations rejected",
+        "git diff --check",
+    ]:
+        if evidence not in guidance_verification:
+            failures.append(f"sample configuration guidance verification must record {evidence}")
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")
