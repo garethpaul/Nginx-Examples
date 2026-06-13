@@ -74,6 +74,11 @@ that has Nginx installed.
 The pinned Linux workflow runs only the static configuration/security baseline;
 it does not replace deployment-host `nginx -t` with adapted paths and modules.
 
+Treat sample users, domains, paths, upstream ports, body limits, timeouts, and
+listener choices as deployment inputs rather than production policy. Review
+forwarded-header trust, filesystem permissions, log retention, TLS termination,
+and network exposure before installing or reloading an adapted configuration.
+
 ## Safe Research Guidelines
 
 Good-faith research is welcome when it stays within these boundaries:

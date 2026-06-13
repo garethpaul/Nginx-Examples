@@ -1,6 +1,6 @@
 # Sample Configuration Guidance
 
-status: planned
+status: completed
 
 ## Context
 
@@ -59,6 +59,34 @@ plan evidence, and deployment-host `nginx -t` instruction.
 - run focused hostile mutations against the new guidance contract
 - `git diff --check`
 - scan the intended diff for secrets and generated artifacts
+
+## Work Completed
+
+- Replaced the mixed usage list with separate PHP and Tornado purpose and
+  adaptation guidance.
+- Added a shared production checklist for paths, identities, upstreams,
+  limits, timeouts, logging, forwarded-header trust, listeners, and TLS.
+- Clarified that static checks do not replace deployment-host syntax testing.
+- Added maintenance, security, changelog, and static checker contracts without
+  changing either sample configuration.
+
+## Verification Completed
+
+Completed locally on 2026-06-13:
+
+- `python3 -m py_compile scripts/check-nginx-examples.py`
+- `make lint`
+- `make test`
+- `make build`
+- `make check`
+- the checker passed from an external working directory
+- eight focused hostile mutations rejected missing per-file guidance, missing
+  adaptation boundaries, incomplete status, and unfinished verification
+- `git diff --check`
+
+The four Make gates and mutation suite first passed against an isolated copy of
+the exact implementation. They were then rerun against this completed plan in
+the repository worktree.
 
 ## Boundaries
 

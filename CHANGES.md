@@ -1,5 +1,10 @@
 # Changes
 
+## 2026-06-13
+
+- Added per-file purpose and production adaptation guidance for both sample
+  configurations, including deployment-host `nginx -t` boundaries.
+
 ## 2026-06-12
 
 - Disabled persisted checkout credentials and enforced the sole pinned

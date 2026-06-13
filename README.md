@@ -52,24 +52,61 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
 
 ## Running or Using the Project
 
-- Treat both configs as sample-only starting points, not production-ready drop-ins.
-- `sample_php_nginx.conf` is a full `nginx.conf`-style skeleton. Adjust the user, pid path, log paths, `mime.types`, and `sites-enabled/*.conf` include path for the deployment host.
-- `sample_tornado_nginx.conf` proxies to loopback Tornado workers on ports 8000-8003 and sets `Host`, `X-Real-IP`, `X-Forwarded-Host`, `X-Forwarded-For`, and `X-Forwarded-Proto` headers. It also hides upstream `Server` headers with `proxy_hide_header Server`. Replace `/srv/example-app` with the deployment host's static root.
-- The Tornado static location uses `try_files $uri =404;` so missing static
-  assets fail closed instead of falling through to another handler.
-- The Tornado upstream connect timeout limits failed loopback connection setup
-  to five seconds.
-- Upstream I/O timeouts bound both proxy reads and request sends at 30 seconds;
-  deployments should tune these sample values for expected workloads.
-- Both samples set `client_max_body_size 1m;` as a conservative placeholder;
-  adjust it deliberately for routes that need larger request bodies.
-- Both samples set `X-Content-Type-Options: nosniff` with `always` so copied
-  examples do not invite browser MIME sniffing by default.
-- Both samples set `X-Frame-Options: SAMEORIGIN` with `always` as a sample
-  clickjacking guard.
-- Both samples set `Referrer-Policy: strict-origin-when-cross-origin` with
-  `always` as a sample referrer-leakage guard.
-- `use epoll;` is Linux-specific. Remove or change it on platforms that do not support epoll.
+Treat both configs as sample-only starting points, not production-ready
+drop-ins. The checked-in values demonstrate configuration structure and basic
+safeguards; they are not a production capacity, routing, or security policy.
+
+### `sample_php_nginx.conf`
+
+This file is a full `nginx.conf`-style skeleton for a host that loads separate
+site configuration files. Before using it, review and adapt:
+
+- the `user`, worker count, pid path, and log paths for the host's service
+  account and process manager
+- the relative `mime.types` path and the absolute
+  `/usr/local/nginx/sites-enabled/*.conf` include path
+- `worker_connections`, keepalive, gzip, and `client_max_body_size 1m` for the
+  deployment's traffic and upload policy
+- the included site files, including their domains, roots, FastCGI upstreams,
+  TLS listeners, and certificate placeholders
+
+The `sites-enabled/*.conf` glob intentionally excludes unrelated backup files,
+but operators still need to review every matching file and its permissions.
+
+### `sample_tornado_nginx.conf`
+
+This file is a reverse proxy example for four loopback Tornado workers. It sets
+`Host`, `X-Real-IP`, `X-Forwarded-Host`, `X-Forwarded-For`, and
+`X-Forwarded-Proto`, and hides upstream `Server` headers with
+`proxy_hide_header Server`. Before using it, review and adapt:
+
+- the loopback ports and process ownership for the actual Tornado workers
+- `example.local` and `/srv/example-app` for the deployment domain and static
+  root
+- the five-second connect timeout and 30-second upstream I/O timeouts for the
+  workload's latency and failure policy
+- keepalive, gzip, `client_max_body_size 1m`, log paths, and TLS termination
+- `use epoll;`, which is Linux-specific and must be removed or changed on
+  unsupported platforms
+
+The static location keeps `try_files $uri =404;` so missing assets fail closed
+instead of falling through to another handler.
+
+## Production Adaptation Checklist
+
+For either sample, review domains, filesystem paths, service users, file
+permissions, upstream endpoints, request-body limits, timeouts, logging and
+retention, forwarded-header trust, listener exposure, and TLS before
+installation. Preserve or deliberately replace the checked-in safeguards:
+
+- `server_tokens off`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: SAMEORIGIN`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+
+Run deployment-host `nginx -t` against the fully adapted configuration before
+installation or reload. A syntax check can still fail until referenced files,
+modules, users, and permissions match that host.
 
 ## Testing and Verification
 
@@ -81,7 +118,7 @@ The setup commands above are derived from repository files. Legacy mobile, Pytho
   baseline on Python 3.12. Deployment-host `nginx -t` remains required after
   adapting local paths and modules. Checkout credentials are not persisted
   after source retrieval.
-- `nginx -t -c /path/to/adjusted/nginx.conf` on a host with Nginx installed
+- `nginx -t -c /absolute/path/to/adjusted/nginx.conf` on the deployment host
 
 The checked-in configs use host-specific paths such as `mime.types`, log files,
 static roots, and include directories. Adjust those paths before running

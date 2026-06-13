@@ -35,12 +35,12 @@ Priority:
   SDK-free static baseline
 - Keep that static baseline pinned and read-only in hosted Linux validation
 - Keep hosted source retrieval credential-free after checkout
+- Keep per-file README explanations and production adaptation boundaries
+  current
+- Keep deployment-host syntax validation guidance with `nginx -t`
 
 Next priorities:
 
-- Keep README explanations for each config file current
-- Keep syntax validation guidance with `nginx -t`
-- Document which settings are sample-only and should be adapted before production
 - Add TLS examples only with safe placeholders
 
 Contribution rules:
