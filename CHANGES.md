@@ -2,6 +2,8 @@
 
 ## 2026-06-13
 
+- Made every dependency-free Make alias resolve the static checker from the
+  checkout when the Makefile is invoked by absolute path.
 - Added per-file purpose and production adaptation guidance for both sample
   configurations, including deployment-host `nginx -t` boundaries.
 

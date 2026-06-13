@@ -114,6 +114,9 @@ modules, users, and permissions match that host.
 - `make test`
 - `make build`
 - `make check`
+- The Make gates are location-independent. From another directory, pass the
+  checkout's Makefile by absolute path, such as
+  `make -f /path/to/Nginx-Examples/Makefile check`.
 - Pinned `ubuntu-24.04` GitHub Actions runs the static configuration/security
   baseline on Python 3.12. Deployment-host `nginx -t` remains required after
   adapting local paths and modules. Checkout credentials are not persisted
@@ -165,6 +168,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
 
 - Run `make lint`, `make test`, `make build`, and `make check` before changing
   sample configs.
+- Use an absolute Makefile path when running those static gates outside the
+  checkout.
 - Run `nginx -t` on a host with Nginx installed after adapting local paths.
 - See `docs/plans/2026-06-09-make-gate-aliases.md` for the local verification
   gate aliases.
