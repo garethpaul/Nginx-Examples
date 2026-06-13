@@ -8,6 +8,21 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
+EXPECTED_MAKEFILE = """ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+
+.PHONY: build check lint static-check test verify
+
+PYTHON ?= python3
+
+check: verify
+
+verify: static-check
+
+lint test build: static-check
+
+static-check:
+\tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/check-nginx-examples.py"
+"""
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
 REQUIRED = [
     ".gitignore",
@@ -33,6 +48,7 @@ REQUIRED = [
     "docs/plans/2026-06-12-upstream-io-timeouts.md",
     "docs/plans/2026-06-12-checkout-credential-boundary.md",
     "docs/plans/2026-06-13-sample-configuration-guidance.md",
+    "docs/plans/2026-06-13-location-independent-make.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -149,17 +165,29 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
     makefile = read("Makefile")
-    for phrase in [
-        ".PHONY: build check lint static-check test verify",
-        "check: verify",
-        "verify: static-check",
-        "lint test build: static-check",
-        "PYTHONDONTWRITEBYTECODE=1 $(PYTHON) scripts/check-nginx-examples.py",
-    ]:
-        if phrase not in makefile:
-            failures.append(f"Makefile must include standard gate alias: {phrase}")
+    if makefile != EXPECTED_MAKEFILE:
+        failures.append(
+            "Makefile must exactly preserve rooted dependency-free aliases and the Python override"
+        )
 
-    docs = read("README.md") + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
+    readme = read("README.md")
+    docs = readme + "\n" + read("VISION.md") + "\n" + read("SECURITY.md")
+    location_independent_make_plan = read(
+        "docs/plans/2026-06-13-location-independent-make.md"
+    )
+    if "make -f /path/to/Nginx-Examples/Makefile check" not in readme:
+        failures.append("README must document location-independent Makefile invocation")
+    if not all(
+        evidence in location_independent_make_plan.lower()
+        for evidence in [
+            "status: completed",
+            "root and external-directory",
+            "six isolated hostile mutations",
+        ]
+    ):
+        failures.append(
+            "location-independent Make plan must record completed root, external, and mutation verification"
+        )
     for phrase in [
         "make lint",
         "make test",
@@ -182,7 +210,6 @@ def main() -> int:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
 
-    readme = read("README.md")
     normalized_readme = " ".join(readme.split())
     php_guidance = " ".join(markdown_subsection(readme, "`sample_php_nginx.conf`").split())
     tornado_guidance = " ".join(markdown_subsection(readme, "`sample_tornado_nginx.conf`").split())
