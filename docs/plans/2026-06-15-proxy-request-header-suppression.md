@@ -1,6 +1,6 @@
 # Proxy Request Header Suppression
 
-status: in progress
+status: completed
 
 ## Problem
 
@@ -44,3 +44,24 @@ that request header from being sent to the proxied server.
 - Live `nginx -t` is unavailable unless Nginx is installed; the maintained gate
   validates the source contract without starting a listener or upstream.
 - The stacked base pull request must remain available and merge first.
+
+## Work Completed
+
+- Added one empty-value `Proxy` header override inside the Tornado application
+  proxy location before `proxy_pass`.
+- Preserved trusted forwarding headers, upstream membership, retry policy,
+  timeouts, static-file handling, and sample placeholders.
+- Added an ordering-sensitive exact contract and synchronized project guidance.
+
+## Verification Completed
+
+- All four Make gates passed from the repository and the canonical check passed
+  from an external directory through the absolute Makefile path.
+- The checker compiled and passed without starting Nginx or opening a listener.
+- Six isolated hostile mutations were rejected: missing suppression, nonempty
+  value, suppression after `proxy_pass`, duplicate suppression, missing
+  guidance, and stale plan status.
+- `git diff --check`, exact intended-path, generated-artifact,
+  credential-pattern, config-inventory, conflict-marker, binary, and large-file
+  audits passed.
+- No Nginx process, listener, upstream, domain, certificate, or secret was used.

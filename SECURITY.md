@@ -34,6 +34,8 @@ Helpful reports include:
 - Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
   upstream apps receive a normalized host value instead of raw client
   `$http_host`.
+- Proxy request header suppression should keep client-supplied `Proxy` fields
+  from reaching application upstreams.
 - The upstream connect timeout should bound failed loopback backend connection
   attempts; deployments should review the five-second sample value.
 - Upstream I/O timeouts should bound proxy reads and sends while remaining

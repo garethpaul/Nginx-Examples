@@ -78,7 +78,8 @@ but operators still need to review every matching file and its permissions.
 This file is a reverse proxy example for four loopback Tornado workers. It sets
 `Host`, `X-Real-IP`, `X-Forwarded-Host`, `X-Forwarded-For`, and
 `X-Forwarded-Proto`, and hides upstream `Server` headers with
-`proxy_hide_header Server`. Before using it, review and adapt:
+`proxy_hide_header Server`. Proxy request header suppression also removes the
+inbound `Proxy` field before forwarding. Before using it, review and adapt:
 
 - the loopback ports and process ownership for the actual Tornado workers
 - `example.local` and `/srv/example-app` for the deployment domain and static
@@ -163,6 +164,7 @@ When the required SDK or runtime is unavailable, use static checks and source re
   example.
 - Keep `X-Forwarded-Host` sourced from Nginx `$host`, not raw client
   `$http_host`.
+- Keep Proxy request header suppression before `proxy_pass`.
 
 ## Maintenance Notes
 

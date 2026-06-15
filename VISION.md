@@ -52,6 +52,7 @@ Contribution rules:
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
 - Preserve `X-Forwarded-Host` when changing Tornado proxy headers.
+- Preserve Proxy request header suppression when changing Tornado proxy headers.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
   sample headers.

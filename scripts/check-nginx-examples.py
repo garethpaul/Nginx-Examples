@@ -158,6 +158,14 @@ def main() -> int:
         failures.append("sample_tornado_nginx.conf must not trust raw client Host headers")
     if "proxy_set_header X-Forwarded-Host $http_host;" in tornado:
         failures.append("sample_tornado_nginx.conf must not forward raw client Host headers")
+    proxy_location = tornado.split("location / {", 1)[-1].split("\n        }", 1)[0]
+    proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
+    proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
+    if not (
+        tornado.count('proxy_set_header Proxy "";') == 1
+        and 0 <= proxy_suppression_index < proxy_pass_index
+    ):
+        failures.append("Tornado proxy requests must suppress the inbound Proxy header before proxy_pass")
     if "proxy_pass_header Server;" in tornado:
         failures.append("sample_tornado_nginx.conf must not pass upstream Server headers")
     upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
@@ -206,9 +214,13 @@ def main() -> int:
         "X-Frame-Options",
         "Referrer-Policy",
         "upstream I/O timeouts",
+        "Proxy request header suppression",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
+    for relative_path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]:
+        if "proxy request header suppression" not in read(relative_path).lower():
+            failures.append(f"{relative_path} must document Proxy request header suppression")
 
     normalized_readme = " ".join(readme.split())
     php_guidance = " ".join(markdown_subsection(readme, "`sample_php_nginx.conf`").split())
@@ -314,6 +326,18 @@ def main() -> int:
     ]:
         if evidence not in io_timeout_verification:
             failures.append(f"upstream I/O timeout verification must record {evidence}")
+
+    proxy_header_plan = read("docs/plans/2026-06-15-proxy-request-header-suppression.md")
+    proxy_header_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", proxy_header_plan)
+    proxy_header_verification = markdown_section(proxy_header_plan, "Verification Completed")
+    if (
+        proxy_header_status != ["completed"]
+        or "All four Make gates passed" not in proxy_header_verification
+        or "Six isolated hostile mutations were rejected" not in proxy_header_verification
+        or "external directory" not in proxy_header_verification
+        or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", proxy_header_verification)
+    ):
+        failures.append("Proxy request header suppression plan must record completed verification")
 
     guidance_plan = read("docs/plans/2026-06-13-sample-configuration-guidance.md")
     guidance_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", guidance_plan)

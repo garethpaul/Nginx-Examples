@@ -1,5 +1,9 @@
 # Changes
 
+## 2026-06-15
+
+- Added Proxy request header suppression before the Tornado upstream boundary.
+
 ## 2026-06-13
 
 - Made every dependency-free Make alias resolve the static checker from the
