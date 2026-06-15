@@ -49,6 +49,8 @@ REQUIRED = [
     "docs/plans/2026-06-12-checkout-credential-boundary.md",
     "docs/plans/2026-06-13-sample-configuration-guidance.md",
     "docs/plans/2026-06-13-location-independent-make.md",
+    "docs/plans/2026-06-15-proxy-request-header-suppression.md",
+    "docs/plans/2026-06-15-forwarded-for-trust-boundary.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -138,7 +140,7 @@ def main() -> int:
         "server_name example.local;",
         "proxy_set_header Host $host;",
         "proxy_set_header X-Forwarded-Host $host;",
-        "proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;",
+        "proxy_set_header X-Forwarded-For $remote_addr;",
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_hide_header Server;",
         "proxy_next_upstream error;",
@@ -159,8 +161,17 @@ def main() -> int:
     if "proxy_set_header X-Forwarded-Host $http_host;" in tornado:
         failures.append("sample_tornado_nginx.conf must not forward raw client Host headers")
     proxy_location = tornado.split("location / {", 1)[-1].split("\n        }", 1)[0]
+    forwarded_for_override = "proxy_set_header X-Forwarded-For $remote_addr;"
+    forwarded_for_index = proxy_location.find(forwarded_for_override)
     proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
     proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
+    if not (
+        tornado.count(forwarded_for_override) == 1
+        and 0 <= forwarded_for_index < proxy_pass_index
+        and "$proxy_add_x_forwarded_for" not in tornado
+        and "$http_x_forwarded_for" not in tornado
+    ):
+        failures.append("Tornado proxy requests must replace untrusted X-Forwarded-For before proxy_pass")
     if not (
         tornado.count('proxy_set_header Proxy "";') == 1
         and 0 <= proxy_suppression_index < proxy_pass_index
@@ -338,6 +349,21 @@ def main() -> int:
         or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", proxy_header_verification)
     ):
         failures.append("Proxy request header suppression plan must record completed verification")
+
+    forwarded_for_plan = read("docs/plans/2026-06-15-forwarded-for-trust-boundary.md")
+    forwarded_for_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", forwarded_for_plan)
+    forwarded_for_verification = markdown_section(forwarded_for_plan, "Verification Completed")
+    if (
+        forwarded_for_status != ["completed"]
+        or "All four Make gates passed" not in forwarded_for_verification
+        or "Seven isolated hostile mutations were rejected" not in forwarded_for_verification
+        or "external directory" not in forwarded_for_verification
+        or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", forwarded_for_verification)
+    ):
+        failures.append("Forwarded-For trust boundary plan must record completed verification")
+    for path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]:
+        if "forwarded-for trust boundary" not in read(path).lower():
+            failures.append(f"{path} must document the Forwarded-For trust boundary")
 
     guidance_plan = read("docs/plans/2026-06-13-sample-configuration-guidance.md")
     guidance_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", guidance_plan)

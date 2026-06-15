@@ -34,6 +34,8 @@ Helpful reports include:
 - Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
   upstream apps receive a normalized host value instead of raw client
   `$http_host`.
+- The Forwarded-For trust boundary should overwrite untrusted inbound chains
+  with `$remote_addr` unless a trusted real-IP proxy chain is configured.
 - Proxy request header suppression should keep client-supplied `Proxy` fields
   from reaching application upstreams.
 - The upstream connect timeout should bound failed loopback backend connection

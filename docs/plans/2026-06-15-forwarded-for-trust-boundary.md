@@ -1,6 +1,6 @@
 # Forwarded-For Trust Boundary
 
-Status: planned
+Status: completed
 
 ## Problem
 
@@ -34,3 +34,24 @@ address as the client identity.
 - No live Nginx listener, upstream, domain, certificate, or request was used.
 - The change must remain stacked on PR #7; neither pull request may be merged or
   closed without explicit owner authorization.
+
+## Work Completed
+
+- Replaced appended client-controlled forwarding chains with one
+  `X-Forwarded-For $remote_addr` override before `proxy_pass`.
+- Preserved the existing direct client, host, proto, Proxy suppression,
+  loopback upstream, retry, and timeout directives.
+- Added exact ordering/static contracts and synchronized guidance.
+
+## Verification Completed
+
+- All four Make gates passed from the repository and the canonical check passed
+  from an external directory.
+- Seven isolated hostile mutations were rejected for inherited forwarding, raw
+  inbound forwarding, missing, reordered, or duplicate overrides, missing
+  guidance, and stale plan status.
+- Checker compilation, exact diff, artifact, credential, config-inventory,
+  conflict-marker, binary, large-file, whitespace, and intended-path audits
+  passed.
+- No live Nginx process, listener, upstream, domain, certificate, or request was
+  used.

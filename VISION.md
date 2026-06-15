@@ -72,6 +72,9 @@ forwarded headers including `X-Forwarded-Host`, `client_max_body_size`,
 `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
 `Referrer-Policy: strict-origin-when-cross-origin`, and non-debug logging are
 part of the baseline.
+The Forwarded-For trust boundary should overwrite untrusted client chains at
+the direct-edge sample unless a deployment deliberately configures trusted
+real-IP proxies.
 The Tornado static location also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)

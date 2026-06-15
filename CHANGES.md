@@ -2,6 +2,8 @@
 
 ## 2026-06-15
 
+- Added a Forwarded-For trust boundary so the Tornado sample overwrites
+  untrusted client chains with the direct peer address.
 - Added Proxy request header suppression before the Tornado upstream boundary.
 
 ## 2026-06-13
