@@ -26,7 +26,7 @@ Priority:
 - Maintain security policy for the examples
 - Keep sample-only guardrails visible in README and checks
 - Keep upstream server header disclosure disabled in proxy samples
-- Keep `X-Forwarded-Host` tied to Nginx `$host` in proxy samples
+- Keep the Forwarded Host trust boundary tied to `$server_name`
 - Keep static-file handling explicit with `try_files $uri =404`
 - Keep browser MIME-sniffing protection visible in both samples
 - Keep the sample clickjacking guard visible in both samples
@@ -52,6 +52,7 @@ Contribution rules:
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
 - Preserve `X-Forwarded-Host` when changing Tornado proxy headers.
+- Preserve the Forwarded Host trust boundary when changing proxy identity.
 - Preserve Proxy request header suppression when changing Tornado proxy headers.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing

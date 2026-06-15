@@ -138,8 +138,8 @@ def main() -> int:
     tornado = read("sample_tornado_nginx.conf")
     for phrase in [
         "server_name example.local;",
-        "proxy_set_header Host $host;",
-        "proxy_set_header X-Forwarded-Host $host;",
+        "proxy_set_header Host $server_name;",
+        "proxy_set_header X-Forwarded-Host $server_name;",
         "proxy_set_header X-Forwarded-For $remote_addr;",
         "proxy_set_header X-Forwarded-Proto $scheme;",
         "proxy_hide_header Server;",
@@ -156,15 +156,24 @@ def main() -> int:
             failures.append(f"sample_tornado_nginx.conf must include {phrase}")
     if "/home/ubuntu" in tornado:
         failures.append("sample_tornado_nginx.conf must use placeholder paths, not host-specific home paths")
-    if "proxy_set_header Host $http_host;" in tornado:
-        failures.append("sample_tornado_nginx.conf must not trust raw client Host headers")
-    if "proxy_set_header X-Forwarded-Host $http_host;" in tornado:
-        failures.append("sample_tornado_nginx.conf must not forward raw client Host headers")
     proxy_location = tornado.split("location / {", 1)[-1].split("\n        }", 1)[0]
+    host_override = "proxy_set_header Host $server_name;"
+    forwarded_host_override = "proxy_set_header X-Forwarded-Host $server_name;"
+    host_override_index = proxy_location.find(host_override)
+    forwarded_host_index = proxy_location.find(forwarded_host_override)
     forwarded_for_override = "proxy_set_header X-Forwarded-For $remote_addr;"
     forwarded_for_index = proxy_location.find(forwarded_for_override)
     proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
     proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
+    if not (
+        tornado.count(host_override) == 1
+        and tornado.count(forwarded_host_override) == 1
+        and 0 <= host_override_index < forwarded_host_index < proxy_pass_index
+        and "proxy_set_header Host $host;" not in tornado
+        and "proxy_set_header X-Forwarded-Host $host;" not in tornado
+        and "$http_host" not in tornado
+    ):
+        failures.append("Tornado proxy requests must pin upstream host identity before proxy_pass")
     if not (
         tornado.count(forwarded_for_override) == 1
         and 0 <= forwarded_for_index < proxy_pass_index
@@ -232,6 +241,8 @@ def main() -> int:
     for relative_path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]:
         if "proxy request header suppression" not in read(relative_path).lower():
             failures.append(f"{relative_path} must document Proxy request header suppression")
+        if "forwarded host trust boundary" not in read(relative_path).lower():
+            failures.append(f"{relative_path} must document the Forwarded Host trust boundary")
 
     normalized_readme = " ".join(readme.split())
     php_guidance = " ".join(markdown_subsection(readme, "`sample_php_nginx.conf`").split())
@@ -364,6 +375,21 @@ def main() -> int:
     for path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]:
         if "forwarded-for trust boundary" not in read(path).lower():
             failures.append(f"{path} must document the Forwarded-For trust boundary")
+    forwarded_host_boundary_plan = read("docs/plans/2026-06-15-forwarded-host-trust-boundary.md")
+    forwarded_host_boundary_status = re.findall(
+        r"(?mi)^status:\s*(.+?)\s*$", forwarded_host_boundary_plan
+    )
+    forwarded_host_boundary_verification = markdown_section(
+        forwarded_host_boundary_plan, "Verification Completed"
+    )
+    if (
+        forwarded_host_boundary_status != ["completed"]
+        or "All four Make gates passed" not in forwarded_host_boundary_verification
+        or "Seven isolated hostile mutations were rejected" not in forwarded_host_boundary_verification
+        or "external directory" not in forwarded_host_boundary_verification
+        or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", forwarded_host_boundary_verification)
+    ):
+        failures.append("Forwarded Host trust boundary plan must record completed verification")
 
     guidance_plan = read("docs/plans/2026-06-13-sample-configuration-guidance.md")
     guidance_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", guidance_plan)

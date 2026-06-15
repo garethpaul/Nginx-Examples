@@ -80,8 +80,9 @@ This file is a reverse proxy example for four loopback Tornado workers. It sets
 `X-Forwarded-Proto`, and hides upstream `Server` headers with
 `proxy_hide_header Server`. Proxy request header suppression also removes the
 inbound `Proxy` field before forwarding. The Forwarded-For trust boundary
-overwrites untrusted client chains with the direct peer address. Before using
-it, review and adapt:
+overwrites untrusted client chains with the direct peer address. The Forwarded
+Host trust boundary pins upstream host identity to the configured server name
+instead of client-selected host metadata. Before using it, review and adapt:
 
 - the loopback ports and process ownership for the actual Tornado workers
 - `example.local` and `/srv/example-app` for the deployment domain and static
@@ -164,8 +165,9 @@ When the required SDK or runtime is unavailable, use static checks and source re
 - Keep forwarded-header handling explicit; `X-Forwarded-Host`,
   `X-Forwarded-For`, and `X-Forwarded-Proto` are part of the Tornado proxy
   example.
-- Keep `X-Forwarded-Host` sourced from Nginx `$host`, not raw client
-  `$http_host`.
+- Keep the Forwarded Host trust boundary sourced from `$server_name`, not
+  client-selected `$host` or `$http_host`; adapt aliases or canonical hosts
+  deliberately for the deployment.
 - Keep the Forwarded-For trust boundary sourced from `$remote_addr` unless a
   deployment explicitly configures a trusted real-IP proxy chain.
 - Keep Proxy request header suppression before `proxy_pass`.

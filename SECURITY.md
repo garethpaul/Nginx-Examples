@@ -31,9 +31,9 @@ Helpful reports include:
   copied configs do not inherit an unintended upload/request-body policy.
 - PHP sample includes should stay limited to `sites-enabled/*.conf` so unrelated files are not loaded as config by default.
 - Proxy examples should keep `proxy_hide_header Server` so upstream framework or app server versions are not exposed by default.
-- Proxy examples should forward `X-Forwarded-Host` from Nginx `$host` so
-  upstream apps receive a normalized host value instead of raw client
-  `$http_host`.
+- The Forwarded Host trust boundary should source both upstream host headers
+  from `$server_name`, not client-selected `$host` or `$http_host`; deployments
+  with aliases should configure a canonical host deliberately.
 - The Forwarded-For trust boundary should overwrite untrusted inbound chains
   with `$remote_addr` unless a trusted real-IP proxy chain is configured.
 - Proxy request header suppression should keep client-supplied `Proxy` fields

@@ -1,6 +1,6 @@
 # Forwarded Host Trust Boundary
 
-Status: planned
+Status: completed
 
 ## Problem
 
@@ -58,3 +58,25 @@ host identity to that configured value instead.
 - Both headers use exactly one configured-name override before `proxy_pass`.
 - Existing proxy security, reliability, and sample-adaptation contracts remain
   intact.
+
+## Work Completed
+
+- Pinned upstream `Host` and `X-Forwarded-Host` to the configured
+  `$server_name` before `proxy_pass`.
+- Rejected client-derived `$host` and `$http_host` sources while preserving all
+  other proxy headers and reliability settings.
+- Added synchronized adaptation guidance and mutation-sensitive portable
+  contracts.
+
+## Verification Completed
+
+- All four Make gates passed from the repository and `make check` passed from
+  an external directory.
+- Seven isolated hostile mutations were rejected for either client-derived host
+  source, a missing or duplicate override, ordering drift, missing guidance,
+  and stale plan status.
+- The exact seven-file diff passed workflow/Makefile, generated-artifact,
+  credential, conflict, binary, large-file, mode, whitespace, and intended-path
+  audits.
+- No live Nginx process, listener, upstream, domain, certificate, or request was
+  exercised; validation remained dependency-free and source-based.
