@@ -53,6 +53,8 @@ Contribution rules:
 - Preserve the Tornado static `try_files $uri =404` guard.
 - Preserve `X-Forwarded-Host` when changing Tornado proxy headers.
 - Preserve the Forwarded Host trust boundary when changing proxy identity.
+- Preserve Forwarded header suppression when changing the direct-edge proxy
+  policy.
 - Preserve Proxy request header suppression when changing Tornado proxy headers.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
@@ -76,6 +78,8 @@ part of the baseline.
 The Forwarded-For trust boundary should overwrite untrusted client chains at
 the direct-edge sample unless a deployment deliberately configures trusted
 real-IP proxies.
+Forwarded header suppression should prevent standardized client-selected
+forwarding metadata from bypassing that direct-edge policy.
 The Tornado static location also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)

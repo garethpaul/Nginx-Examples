@@ -1,6 +1,6 @@
 # Forwarded Header Suppression
 
-Status: planned
+Status: completed
 
 ## Problem
 
@@ -64,3 +64,24 @@ that field from being passed to the proxied server.
 ## Primary Source
 
 - <https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_set_header>
+
+## Work Completed
+
+- Added one empty `Forwarded` override before `proxy_pass` in the Tornado
+  sample.
+- Enforced the suppression value, uniqueness, and ordering while preserving all
+  existing proxy identity and reliability controls.
+- Added synchronized security and deployment guidance plus mutation-sensitive
+  portable contracts.
+
+## Verification Completed
+
+- All four Make gates passed from the repository and `make check` passed from
+  an external directory.
+- Six isolated hostile mutations were rejected for missing, non-empty,
+  duplicate, and late suppression, missing guidance, and stale plan status.
+- The exact seven-file implementation diff passed workflow/Makefile and PHP-
+  sample drift, generated-artifact, credential, certificate/key, conflict,
+  binary, large-file, mode, whitespace, and intended-path audits.
+- No live Nginx process, listener, upstream, domain, certificate, or request was
+  exercised; validation remained dependency-free and source-based.

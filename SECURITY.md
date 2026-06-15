@@ -36,6 +36,8 @@ Helpful reports include:
   with aliases should configure a canonical host deliberately.
 - The Forwarded-For trust boundary should overwrite untrusted inbound chains
   with `$remote_addr` unless a trusted real-IP proxy chain is configured.
+- Forwarded header suppression should prevent client-selected standardized
+  forwarding metadata from reaching the application upstream.
 - Proxy request header suppression should keep client-supplied `Proxy` fields
   from reaching application upstreams.
 - The upstream connect timeout should bound failed loopback backend connection

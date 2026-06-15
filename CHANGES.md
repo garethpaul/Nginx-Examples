@@ -6,6 +6,8 @@
   the configured server name instead of client-selected Host metadata.
 - Added a Forwarded-For trust boundary so the Tornado sample overwrites
   untrusted client chains with the direct peer address.
+- Added Forwarded header suppression so standardized client-selected forwarding
+  metadata cannot bypass the direct-edge proxy policy.
 - Added Proxy request header suppression before the Tornado upstream boundary.
 
 ## 2026-06-13

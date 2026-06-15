@@ -51,6 +51,8 @@ REQUIRED = [
     "docs/plans/2026-06-13-location-independent-make.md",
     "docs/plans/2026-06-15-proxy-request-header-suppression.md",
     "docs/plans/2026-06-15-forwarded-for-trust-boundary.md",
+    "docs/plans/2026-06-15-forwarded-host-trust-boundary.md",
+    "docs/plans/2026-06-15-forwarded-header-suppression.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -163,6 +165,8 @@ def main() -> int:
     forwarded_host_index = proxy_location.find(forwarded_host_override)
     forwarded_for_override = "proxy_set_header X-Forwarded-For $remote_addr;"
     forwarded_for_index = proxy_location.find(forwarded_for_override)
+    forwarded_suppression = 'proxy_set_header Forwarded "";'
+    forwarded_suppression_index = proxy_location.find(forwarded_suppression)
     proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
     proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
     if not (
@@ -181,6 +185,12 @@ def main() -> int:
         and "$http_x_forwarded_for" not in tornado
     ):
         failures.append("Tornado proxy requests must replace untrusted X-Forwarded-For before proxy_pass")
+    if not (
+        len(re.findall(r"(?m)^\s*proxy_set_header\s+Forwarded\b", proxy_location)) == 1
+        and tornado.count(forwarded_suppression) == 1
+        and 0 <= forwarded_suppression_index < proxy_pass_index
+    ):
+        failures.append("Tornado proxy requests must suppress the inbound Forwarded header before proxy_pass")
     if not (
         tornado.count('proxy_set_header Proxy "";') == 1
         and 0 <= proxy_suppression_index < proxy_pass_index
@@ -375,6 +385,20 @@ def main() -> int:
     for path in ["README.md", "SECURITY.md", "VISION.md", "CHANGES.md"]:
         if "forwarded-for trust boundary" not in read(path).lower():
             failures.append(f"{path} must document the Forwarded-For trust boundary")
+        if "forwarded header suppression" not in read(path).lower():
+            failures.append(f"{path} must document Forwarded header suppression")
+
+    forwarded_header_plan = read("docs/plans/2026-06-15-forwarded-header-suppression.md")
+    forwarded_header_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", forwarded_header_plan)
+    forwarded_header_verification = markdown_section(forwarded_header_plan, "Verification Completed")
+    if (
+        forwarded_header_status != ["completed"]
+        or "All four Make gates passed" not in forwarded_header_verification
+        or "Six isolated hostile mutations were rejected" not in forwarded_header_verification
+        or "external directory" not in forwarded_header_verification
+        or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", forwarded_header_verification)
+    ):
+        failures.append("Forwarded header suppression plan must record completed verification")
     forwarded_host_boundary_plan = read("docs/plans/2026-06-15-forwarded-host-trust-boundary.md")
     forwarded_host_boundary_status = re.findall(
         r"(?mi)^status:\s*(.+?)\s*$", forwarded_host_boundary_plan

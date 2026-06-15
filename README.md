@@ -170,6 +170,9 @@ When the required SDK or runtime is unavailable, use static checks and source re
   deliberately for the deployment.
 - Keep the Forwarded-For trust boundary sourced from `$remote_addr` unless a
   deployment explicitly configures a trusted real-IP proxy chain.
+- Keep Forwarded header suppression before `proxy_pass` so client-selected
+  standardized forwarding metadata cannot bypass the explicit direct-edge
+  `X-Forwarded-*` policy.
 - Keep Proxy request header suppression before `proxy_pass`.
 
 ## Maintenance Notes
