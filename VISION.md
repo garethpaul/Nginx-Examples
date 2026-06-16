@@ -20,6 +20,7 @@ Priority:
 - Keep logging, gzip, proxy, and upstream settings easy to inspect
 - Keep the upstream connect timeout explicit in the Tornado proxy sample
 - Keep upstream I/O timeouts explicit and bounded
+- Keep WebSocket upgrade proxying explicit for mixed Tornado traffic
 - Keep PHP sample includes limited to `sites-enabled/*.conf`
 - Keep request body size limits explicit in both samples
 - Avoid embedding real domain names, certificates, or private upstreams
@@ -56,6 +57,7 @@ Contribution rules:
 - Preserve Forwarded header suppression when changing the direct-edge proxy
   policy.
 - Preserve Proxy request header suppression when changing Tornado proxy headers.
+- Preserve mapped WebSocket upgrade proxying when changing Tornado proxy headers.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
   sample headers.

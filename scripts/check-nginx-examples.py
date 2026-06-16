@@ -53,6 +53,7 @@ REQUIRED = [
     "docs/plans/2026-06-15-forwarded-for-trust-boundary.md",
     "docs/plans/2026-06-15-forwarded-host-trust-boundary.md",
     "docs/plans/2026-06-15-forwarded-header-suppression.md",
+    "docs/plans/2026-06-16-websocket-upgrade-proxying.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
 ] + CONFIGS
@@ -168,6 +169,12 @@ def main() -> int:
     forwarded_suppression = 'proxy_set_header Forwarded "";'
     forwarded_suppression_index = proxy_location.find(forwarded_suppression)
     proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
+    proxy_http_version = "proxy_http_version 1.1;"
+    upgrade_header = "proxy_set_header Upgrade $http_upgrade;"
+    connection_header = "proxy_set_header Connection $connection_upgrade;"
+    proxy_http_version_index = proxy_location.find(proxy_http_version)
+    upgrade_header_index = proxy_location.find(upgrade_header)
+    connection_header_index = proxy_location.find(connection_header)
     proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
     if not (
         tornado.count(host_override) == 1
@@ -196,6 +203,24 @@ def main() -> int:
         and 0 <= proxy_suppression_index < proxy_pass_index
     ):
         failures.append("Tornado proxy requests must suppress the inbound Proxy header before proxy_pass")
+    upgrade_map = re.findall(
+        r"(?ms)^\s*map\s+\$http_upgrade\s+\$connection_upgrade\s*\{\s*"
+        r"default\s+upgrade;\s*''\s+close;\s*\}",
+        tornado,
+    )
+    http_index = tornado.find("http {")
+    map_index = tornado.find("map $http_upgrade $connection_upgrade {")
+    upstream_index = tornado.find("upstream frontends {")
+    if not (len(upgrade_map) == 1 and 0 <= http_index < map_index < upstream_index):
+        failures.append("Tornado WebSocket upgrade map must be unique and scoped to http")
+    if not (
+        tornado.count(proxy_http_version) == 1
+        and tornado.count(upgrade_header) == 1
+        and tornado.count(connection_header) == 1
+        and 0 <= proxy_http_version_index < upgrade_header_index < connection_header_index < proxy_pass_index
+        and 'proxy_set_header Connection "upgrade";' not in tornado
+    ):
+        failures.append("Tornado WebSocket upgrade headers must preserve mixed traffic before proxy_pass")
     if "proxy_pass_header Server;" in tornado:
         failures.append("sample_tornado_nginx.conf must not pass upstream Server headers")
     upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
@@ -245,6 +270,7 @@ def main() -> int:
         "Referrer-Policy",
         "upstream I/O timeouts",
         "Proxy request header suppression",
+        "WebSocket upgrade proxying",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -253,6 +279,8 @@ def main() -> int:
             failures.append(f"{relative_path} must document Proxy request header suppression")
         if "forwarded host trust boundary" not in read(relative_path).lower():
             failures.append(f"{relative_path} must document the Forwarded Host trust boundary")
+        if "websocket upgrade proxying" not in read(relative_path).lower():
+            failures.append(f"{relative_path} must document WebSocket upgrade proxying")
 
     normalized_readme = " ".join(readme.split())
     php_guidance = " ".join(markdown_subsection(readme, "`sample_php_nginx.conf`").split())
@@ -437,6 +465,18 @@ def main() -> int:
     ]:
         if evidence not in guidance_verification:
             failures.append(f"sample configuration guidance verification must record {evidence}")
+
+    websocket_plan = read("docs/plans/2026-06-16-websocket-upgrade-proxying.md")
+    websocket_status = re.findall(r"(?mi)^status:\s*(.+?)\s*$", websocket_plan)
+    websocket_verification = markdown_section(websocket_plan, "Verification Completed")
+    if (
+        websocket_status != ["completed"]
+        or "All four Make gates passed" not in websocket_verification
+        or "Twelve isolated hostile mutations were rejected" not in websocket_verification
+        or "external directory" not in websocket_verification
+        or re.search(r"(?i)\b(?:pending|todo|tbd|not run)\b", websocket_verification)
+    ):
+        failures.append("WebSocket upgrade proxying plan must record completed verification")
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")

@@ -40,6 +40,8 @@ Helpful reports include:
   forwarding metadata from reaching the application upstream.
 - Proxy request header suppression should keep client-supplied `Proxy` fields
   from reaching application upstreams.
+- WebSocket upgrade proxying should use the mapped `Connection` value rather
+  than forcing every upstream request into upgrade mode.
 - The upstream connect timeout should bound failed loopback backend connection
   attempts; deployments should review the five-second sample value.
 - Upstream I/O timeouts should bound proxy reads and sends while remaining

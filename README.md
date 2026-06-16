@@ -89,6 +89,8 @@ instead of client-selected host metadata. Before using it, review and adapt:
   root
 - the five-second connect timeout and 30-second upstream I/O timeouts for the
   workload's latency and failure policy
+- WebSocket upgrade proxying, including whether the 30-second read timeout is
+  paired with application pings or increased for long-lived idle connections
 - keepalive, gzip, `client_max_body_size 1m`, log paths, and TLS termination
 - `use epoll;`, which is Linux-specific and must be removed or changed on
   unsupported platforms
@@ -174,6 +176,8 @@ When the required SDK or runtime is unavailable, use static checks and source re
   standardized forwarding metadata cannot bypass the explicit direct-edge
   `X-Forwarded-*` policy.
 - Keep Proxy request header suppression before `proxy_pass`.
+- Keep WebSocket upgrade proxying on HTTP/1.1 with the mapped `Connection`
+  value so ordinary HTTP requests are not forced into upgrade mode.
 
 ## Maintenance Notes
 

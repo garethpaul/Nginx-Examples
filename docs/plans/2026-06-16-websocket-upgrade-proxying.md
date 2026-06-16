@@ -1,6 +1,6 @@
 ---
 title: WebSocket Upgrade Proxying
-status: planned
+status: completed
 date: 2026-06-16
 ---
 
@@ -72,3 +72,25 @@ HTTP/1.1 for Nginx versions before 1.29.7.
 - The Tornado proxy sample can preserve WebSocket handshake intent while
   ordinary HTTP requests use a non-upgrade connection value.
 - Existing proxy trust and reliability contracts remain unchanged.
+
+## Work Completed
+
+- Added one `http`-scoped upgrade map with distinct upgrade and ordinary
+  request branches.
+- Added explicit upstream HTTP/1.1 plus ordered `Upgrade` and mapped
+  `Connection` headers before `proxy_pass`.
+- Extended the static baseline and maintained guidance while preserving every
+  existing trust, timeout, static-file, workflow, and PHP-sample contract.
+
+## Verification Completed
+
+- All four Make gates passed from the repository root and an external directory.
+- Twelve isolated hostile mutations were rejected across map presence, scope,
+  and both branches, HTTP version, upgrade headers, directive ordering, README,
+  SECURITY, VISION, and changelog evidence.
+- The focused Python checker passed before and after the completed-plan
+  contract was added.
+- Exact diff, generated artifact, credential, certificate/key, conflict marker,
+  binary, large-file, mode, and whitespace audits passed for intended files.
+- Live `nginx -t` was unavailable because Nginx is not installed; deployment
+  hosts must still validate their fully adapted configuration before reload.

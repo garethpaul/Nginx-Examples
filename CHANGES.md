@@ -1,5 +1,9 @@
 # Changes
 
+## 2026-06-16
+
+- Added WebSocket upgrade proxying for mixed Tornado HTTP and WebSocket traffic.
+
 ## 2026-06-15
 
 - Added a Forwarded Host trust boundary so upstream host identity comes from
