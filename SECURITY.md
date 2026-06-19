@@ -26,6 +26,7 @@ Helpful reports include:
 
 - This repository appears to be a web server configuration sample. The active security scope is the code and documentation on the default branch.
 - The checked-in files are sample-only Nginx configs. They must be adapted and verified with `nginx -t` before use in a live deployment.
+- Operators should not install the checked-in configs directly. Copy them to a host-specific test path, adjust local paths and names, and verify the adapted copy first.
 - Both examples should keep `server_tokens off` so Nginx version disclosure is not enabled by default.
 - Both examples should keep an explicit `client_max_body_size` placeholder so
   copied configs do not inherit an unintended upload/request-body policy.
@@ -36,12 +37,16 @@ Helpful reports include:
   with aliases should configure a canonical host deliberately.
 - The Forwarded-For trust boundary should overwrite untrusted inbound chains
   with `$remote_addr` unless a trusted real-IP proxy chain is configured.
+- The direct-edge sample should overwrite client-selected `X-Forwarded-Port`
+  with the local listener port. Behind another proxy, trust only exact proxy
+  CIDRs and metadata that proxy overwrites.
 - Forwarded header suppression should prevent client-selected standardized
   forwarding metadata from reaching the application upstream.
 - Proxy request header suppression should keep client-supplied `Proxy` fields
   from reaching application upstreams.
 - WebSocket upgrade proxying should use the mapped `Connection` value rather
-  than forcing every upstream request into upgrade mode.
+  than forcing every upstream request into upgrade mode, and should remove
+  non-WebSocket upgrade protocols before the upstream boundary.
 - The upstream connect timeout should bound failed loopback backend connection
   attempts; deployments should review the five-second sample value.
 - Upstream I/O timeouts should bound proxy reads and sends while remaining
@@ -79,13 +84,17 @@ Run `make lint`, `make test`, `make build`, and `make check` before publishing
 config changes, then run `nginx -t` with locally adjusted paths on a system
 that has Nginx installed.
 
-The pinned Linux workflow runs only the static configuration/security baseline;
-it does not replace deployment-host `nginx -t` with adapted paths and modules.
+The pinned Linux workflow runs static, hostile-mutation, syntax, and live
+loopback proxy tests; it does not replace deployment-host `nginx -t` with
+adapted paths and modules.
 
 Treat sample users, domains, paths, upstream ports, body limits, timeouts, and
 listener choices as deployment inputs rather than production policy. Review
 forwarded-header trust, filesystem permissions, log retention, TLS termination,
 and network exposure before installing or reloading an adapted configuration.
+The examples are HTTP-only. HSTS belongs only on a fully deployed HTTPS virtual
+host. Streaming handlers must also review Nginx's default request/response
+buffering and WebSocket ping/read-timeout policy.
 
 ## Safe Research Guidelines
 

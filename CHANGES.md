@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-19
+
+- Replaced client-selected `X-Forwarded-Port` with the direct listener port.
+- Restricted upstream Upgrade forwarding to case-insensitive WebSocket tokens.
+- Added live Nginx reverse-proxy tests and hostile static-checker mutations.
+- Integrated repository ownership and setup/loopback guidance from the overlapping CI root.
+
 ## 2026-06-16
 
 - Added WebSocket upgrade proxying for mixed Tornado HTTP and WebSocket traffic.

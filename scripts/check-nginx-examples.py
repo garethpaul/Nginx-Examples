@@ -10,15 +10,23 @@ import xml.etree.ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_MAKEFILE = """ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: build check lint static-check test verify
+.PHONY: build check checker-test lint proxy-test static-check test verify
 
 PYTHON ?= python3
 
 check: verify
 
-verify: static-check
+verify: static-check test
 
-lint test build: static-check
+lint build: static-check
+
+test: checker-test proxy-test
+
+checker-test:
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-check-nginx-examples.py"
+
+proxy-test:
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-nginx-proxy.py"
 
 static-check:
 \tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/check-nginx-examples.py"
@@ -26,7 +34,9 @@ static-check:
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
 REQUIRED = [
     ".gitignore",
+    ".github/CODEOWNERS",
     ".github/workflows/check.yml",
+    "AGENTS.md",
     "CHANGES.md",
     "Makefile",
     "README",
@@ -43,6 +53,7 @@ REQUIRED = [
     "docs/plans/2026-06-09-referrer-policy-header.md",
     "docs/plans/2026-06-09-make-gate-aliases.md",
     "docs/plans/2026-06-10-forwarded-host-header.md",
+    "docs/plans/2026-06-10-setup-and-loopback-boundary.md",
     "docs/plans/2026-06-10-upstream-connect-timeout.md",
     "docs/plans/2026-06-10-hosted-static-validation.md",
     "docs/plans/2026-06-12-upstream-io-timeouts.md",
@@ -54,8 +65,11 @@ REQUIRED = [
     "docs/plans/2026-06-15-forwarded-host-trust-boundary.md",
     "docs/plans/2026-06-15-forwarded-header-suppression.md",
     "docs/plans/2026-06-16-websocket-upgrade-proxying.md",
+    "docs/plans/2026-06-19-proxy-boundary-review.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
+    "scripts/test-check-nginx-examples.py",
+    "scripts/test-nginx-proxy.py",
 ] + CONFIGS
 
 
@@ -108,20 +122,21 @@ def main() -> int:
 
     for config in CONFIGS:
         text = read(config)
+        active_text = strip_comments(text)
         check_balanced_braces(config, text, failures)
-        if "server_tokens off;" not in text:
+        if "server_tokens off;" not in active_text:
             failures.append(f"{config} must disable server_tokens")
-        if "client_max_body_size 1m;" not in text:
+        if "client_max_body_size 1m;" not in active_text:
             failures.append(f"{config} must define the sample client_max_body_size limit")
-        if "add_header X-Content-Type-Options nosniff always;" not in text:
+        if "add_header X-Content-Type-Options nosniff always;" not in active_text:
             failures.append(f"{config} must set the X-Content-Type-Options nosniff header")
-        if "add_header X-Frame-Options SAMEORIGIN always;" not in text:
+        if "add_header X-Frame-Options SAMEORIGIN always;" not in active_text:
             failures.append(f"{config} must set the X-Frame-Options SAMEORIGIN header")
-        if "add_header Referrer-Policy strict-origin-when-cross-origin always;" not in text:
+        if "add_header Referrer-Policy strict-origin-when-cross-origin always;" not in active_text:
             failures.append(f"{config} must set the Referrer-Policy header")
-        if re.search(r"error_log\s+\S+\s+debug\s*;", text):
+        if re.search(r"error_log\s+\S+\s+debug\s*;", active_text):
             failures.append(f"{config} must not default to debug error logging")
-        if re.search(r"ssl_certificate(_key)?\s+[^;]*(/etc|/home|BEGIN|PRIVATE)", text):
+        if re.search(r"ssl_certificate(_key)?\s+[^;]*(/etc|/home|BEGIN|PRIVATE)", active_text):
             failures.append(f"{config} must not include real certificate or key paths")
 
     php = read("sample_php_nginx.conf")
@@ -139,12 +154,14 @@ def main() -> int:
         failures.append("sample_php_nginx.conf must not include every file from sites-enabled")
 
     tornado = read("sample_tornado_nginx.conf")
+    active_tornado = strip_comments(tornado)
     for phrase in [
         "server_name example.local;",
         "proxy_set_header Host $server_name;",
         "proxy_set_header X-Forwarded-Host $server_name;",
         "proxy_set_header X-Forwarded-For $remote_addr;",
         "proxy_set_header X-Forwarded-Proto $scheme;",
+        "proxy_set_header X-Forwarded-Port $server_port;",
         "proxy_hide_header Server;",
         "proxy_next_upstream error;",
         "proxy_connect_timeout 5s;",
@@ -155,75 +172,97 @@ def main() -> int:
         "root /srv/example-app;",
         "try_files $uri =404;",
     ]:
-        if phrase not in tornado:
+        source = tornado if phrase.startswith("#") else active_tornado
+        if phrase not in source:
             failures.append(f"sample_tornado_nginx.conf must include {phrase}")
     if "/home/ubuntu" in tornado:
         failures.append("sample_tornado_nginx.conf must use placeholder paths, not host-specific home paths")
-    proxy_location = tornado.split("location / {", 1)[-1].split("\n        }", 1)[0]
+    proxy_location = active_tornado.split("location / {", 1)[-1].split("\n        }", 1)[0]
     host_override = "proxy_set_header Host $server_name;"
     forwarded_host_override = "proxy_set_header X-Forwarded-Host $server_name;"
     host_override_index = proxy_location.find(host_override)
     forwarded_host_index = proxy_location.find(forwarded_host_override)
     forwarded_for_override = "proxy_set_header X-Forwarded-For $remote_addr;"
     forwarded_for_index = proxy_location.find(forwarded_for_override)
+    forwarded_port_override = "proxy_set_header X-Forwarded-Port $server_port;"
+    forwarded_port_index = proxy_location.find(forwarded_port_override)
     forwarded_suppression = 'proxy_set_header Forwarded "";'
     forwarded_suppression_index = proxy_location.find(forwarded_suppression)
     proxy_suppression_index = proxy_location.find('proxy_set_header Proxy "";')
     proxy_http_version = "proxy_http_version 1.1;"
-    upgrade_header = "proxy_set_header Upgrade $http_upgrade;"
+    upgrade_header = "proxy_set_header Upgrade $upstream_upgrade;"
     connection_header = "proxy_set_header Connection $connection_upgrade;"
     proxy_http_version_index = proxy_location.find(proxy_http_version)
     upgrade_header_index = proxy_location.find(upgrade_header)
     connection_header_index = proxy_location.find(connection_header)
     proxy_pass_index = proxy_location.find("proxy_pass http://frontends;")
     if not (
-        tornado.count(host_override) == 1
-        and tornado.count(forwarded_host_override) == 1
+        active_tornado.count(host_override) == 1
+        and active_tornado.count(forwarded_host_override) == 1
         and 0 <= host_override_index < forwarded_host_index < proxy_pass_index
-        and "proxy_set_header Host $host;" not in tornado
-        and "proxy_set_header X-Forwarded-Host $host;" not in tornado
-        and "$http_host" not in tornado
+        and "proxy_set_header Host $host;" not in active_tornado
+        and "proxy_set_header X-Forwarded-Host $host;" not in active_tornado
+        and "$http_host" not in active_tornado
     ):
         failures.append("Tornado proxy requests must pin upstream host identity before proxy_pass")
     if not (
-        tornado.count(forwarded_for_override) == 1
+        active_tornado.count(forwarded_for_override) == 1
         and 0 <= forwarded_for_index < proxy_pass_index
-        and "$proxy_add_x_forwarded_for" not in tornado
-        and "$http_x_forwarded_for" not in tornado
+        and "$proxy_add_x_forwarded_for" not in active_tornado
+        and "$http_x_forwarded_for" not in active_tornado
     ):
         failures.append("Tornado proxy requests must replace untrusted X-Forwarded-For before proxy_pass")
     if not (
+        active_tornado.count(forwarded_port_override) == 1
+        and 0 <= forwarded_port_index < proxy_pass_index
+        and "$http_x_forwarded_port" not in active_tornado
+    ):
+        failures.append("Tornado proxy requests must replace untrusted X-Forwarded-Port before proxy_pass")
+    if not (
         len(re.findall(r"(?m)^\s*proxy_set_header\s+Forwarded\b", proxy_location)) == 1
-        and tornado.count(forwarded_suppression) == 1
+        and active_tornado.count(forwarded_suppression) == 1
         and 0 <= forwarded_suppression_index < proxy_pass_index
     ):
         failures.append("Tornado proxy requests must suppress the inbound Forwarded header before proxy_pass")
     if not (
-        tornado.count('proxy_set_header Proxy "";') == 1
+        active_tornado.count('proxy_set_header Proxy "";') == 1
         and 0 <= proxy_suppression_index < proxy_pass_index
     ):
         failures.append("Tornado proxy requests must suppress the inbound Proxy header before proxy_pass")
-    upgrade_map = re.findall(
-        r"(?ms)^\s*map\s+\$http_upgrade\s+\$connection_upgrade\s*\{\s*"
-        r"default\s+upgrade;\s*''\s+close;\s*\}",
-        tornado,
+    sanitized_upgrade_map = re.findall(
+        r"(?ms)^\s*map\s+\$http_upgrade\s+\$upstream_upgrade\s*\{\s*"
+        r"default\s+'';\s*~\*\^websocket\$\s+websocket;\s*\}",
+        active_tornado,
     )
-    http_index = tornado.find("http {")
-    map_index = tornado.find("map $http_upgrade $connection_upgrade {")
-    upstream_index = tornado.find("upstream frontends {")
-    if not (len(upgrade_map) == 1 and 0 <= http_index < map_index < upstream_index):
-        failures.append("Tornado WebSocket upgrade map must be unique and scoped to http")
+    connection_upgrade_map = re.findall(
+        r"(?ms)^\s*map\s+\$upstream_upgrade\s+\$connection_upgrade\s*\{\s*"
+        r"default\s+close;\s*websocket\s+upgrade;\s*\}",
+        active_tornado,
+    )
+    http_index = active_tornado.find("http {")
+    map_index = active_tornado.find("map $http_upgrade $upstream_upgrade {")
+    connection_map_index = active_tornado.find("map $upstream_upgrade $connection_upgrade {")
+    upstream_index = active_tornado.find("upstream frontends {")
     if not (
-        tornado.count(proxy_http_version) == 1
-        and tornado.count(upgrade_header) == 1
-        and tornado.count(connection_header) == 1
+        len(sanitized_upgrade_map) == 1
+        and len(connection_upgrade_map) == 1
+        and 0 <= http_index < map_index < connection_map_index < upstream_index
+    ):
+        failures.append("Tornado WebSocket upgrade maps must sanitize websocket-only traffic at http scope")
+    if not (
+        active_tornado.count(proxy_http_version) == 1
+        and active_tornado.count(upgrade_header) == 1
+        and active_tornado.count(connection_header) == 1
         and 0 <= proxy_http_version_index < upgrade_header_index < connection_header_index < proxy_pass_index
-        and 'proxy_set_header Connection "upgrade";' not in tornado
+        and 'proxy_set_header Connection "upgrade";' not in active_tornado
+        and "proxy_set_header Upgrade $http_upgrade;" not in active_tornado
     ):
         failures.append("Tornado WebSocket upgrade headers must preserve mixed traffic before proxy_pass")
-    if "proxy_pass_header Server;" in tornado:
+    if "proxy_pass_header Server;" in active_tornado:
         failures.append("sample_tornado_nginx.conf must not pass upstream Server headers")
-    upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", tornado)
+    if active_tornado.count("proxy_pass http://frontends;") != 1:
+        failures.append("Tornado proxy_pass must preserve the original path and query without a URI suffix")
+    upstreams = re.findall(r"server\s+([^:;\s]+):\d+;", active_tornado)
     if not upstreams or any(host != "127.0.0.1" for host in upstreams):
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
@@ -262,6 +301,7 @@ def main() -> int:
         "client_max_body_size",
         "X-Forwarded-For",
         "X-Forwarded-Host",
+        "X-Forwarded-Port",
         "proxy_hide_header Server",
         "sites-enabled/*.conf",
         "try_files $uri =404",
@@ -271,6 +311,9 @@ def main() -> int:
         "upstream I/O timeouts",
         "Proxy request header suppression",
         "WebSocket upgrade proxying",
+        "Do not install the checked-in configs directly",
+        "loopback-only",
+        "HSTS",
     ]:
         if phrase not in docs:
             failures.append(f"docs must mention {phrase}")
@@ -480,6 +523,7 @@ def main() -> int:
 
     hosted_plan = read("docs/plans/2026-06-10-hosted-static-validation.md")
     workflow = read(".github/workflows/check.yml")
+    codeowners = read(".github/CODEOWNERS")
     if "status: completed" not in hosted_plan or "make check" not in hosted_plan:
         failures.append("hosted static validation plan must record status and verification")
     for expected in [
@@ -490,6 +534,7 @@ def main() -> int:
         "actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10",
         "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405",
         'python-version: "3.12"',
+        "sudo apt-get update && sudo apt-get install --no-install-recommends -y nginx",
         "run: make check",
     ]:
         if expected not in workflow:
@@ -510,6 +555,8 @@ def main() -> int:
         failures.append("Check workflow must use one pinned credential-free checkout")
     if workflow.count("persist-credentials:") != 1 or "persist-credentials: true" in workflow:
         failures.append("Check workflow must not persist checkout credentials")
+    if codeowners.strip() != "* @garethpaul":
+        failures.append("CODEOWNERS must assign the repository to @garethpaul")
     checkout_plan = read("docs/plans/2026-06-12-checkout-credential-boundary.md")
     if (
         "status: completed" not in checkout_plan.lower()
@@ -525,6 +572,16 @@ def main() -> int:
         or "credential-free checkout" not in guidance
     ):
         failures.append("repository guidance must document the credential-free checkout boundary")
+    setup_plan = read("docs/plans/2026-06-10-setup-and-loopback-boundary.md")
+    if "status: completed" not in setup_plan or "loopback-only" not in setup_plan:
+        failures.append("setup and loopback boundary plan must record completed verification")
+    review_plan = read("docs/plans/2026-06-19-proxy-boundary-review.md")
+    if (
+        "status: completed" not in review_plan
+        or "Live Nginx" not in review_plan
+        or "hostile mutations" not in review_plan
+    ):
+        failures.append("proxy boundary review plan must record completed runtime and mutation verification")
 
     gitignore = read(".gitignore")
     for expected in [".env", "*.log", "*.pid", "nginx-test-prefix/"]:
