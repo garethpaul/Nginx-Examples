@@ -19,13 +19,16 @@ Priority:
 - Preserve PHP and Tornado example configuration files
 - Keep logging, gzip, proxy, and upstream settings easy to inspect
 - Keep the upstream connect timeout explicit in the Tornado proxy sample
+- Keep upstream I/O timeouts explicit and bounded
+- Keep WebSocket upgrade proxying explicit for mixed Tornado traffic
+- Keep client-selected forwarding ports and non-WebSocket upgrades out of the upstream boundary
 - Keep PHP sample includes limited to `sites-enabled/*.conf`
 - Keep request body size limits explicit in both samples
 - Avoid embedding real domain names, certificates, or private upstreams
 - Maintain security policy for the examples
 - Keep sample-only guardrails visible in README and checks
 - Keep upstream server header disclosure disabled in proxy samples
-- Keep `X-Forwarded-Host` tied to Nginx `$host` in proxy samples
+- Keep the Forwarded Host trust boundary tied to `$server_name`
 - Keep static-file handling explicit with `try_files $uri =404`
 - Keep browser MIME-sniffing protection visible in both samples
 - Keep the sample clickjacking guard visible in both samples
@@ -33,12 +36,13 @@ Priority:
 - Keep `make lint`, `make test`, `make build`, and `make check` on the
   SDK-free static baseline
 - Keep that static baseline pinned and read-only in hosted Linux validation
+- Keep hosted source retrieval credential-free after checkout
+- Keep per-file README explanations and production adaptation boundaries
+  current
+- Keep deployment-host syntax validation guidance with `nginx -t`
 
 Next priorities:
 
-- Keep README explanations for each config file current
-- Keep syntax validation guidance with `nginx -t`
-- Document which settings are sample-only and should be adapted before production
 - Add TLS examples only with safe placeholders
 
 Contribution rules:
@@ -50,10 +54,17 @@ Contribution rules:
 - Do not add production secrets or private infrastructure details.
 - Preserve the Tornado static `try_files $uri =404` guard.
 - Preserve `X-Forwarded-Host` when changing Tornado proxy headers.
+- Preserve the Forwarded Host trust boundary when changing proxy identity.
+- Preserve Forwarded header suppression when changing the direct-edge proxy
+  policy.
+- Preserve Proxy request header suppression when changing Tornado proxy headers.
+- Preserve mapped WebSocket upgrade proxying when changing Tornado proxy headers.
+- Preserve the direct-edge `X-Forwarded-Port` replacement unless a deployment documents a trusted proxy boundary.
 - Preserve `X-Content-Type-Options: nosniff` when changing sample headers.
 - Preserve `Referrer-Policy: strict-origin-when-cross-origin` when changing
   sample headers.
 - Preserve the upstream connect timeout when changing Tornado proxy behavior.
+- Preserve upstream I/O timeouts when changing Tornado proxy behavior.
 
 ## Security
 
@@ -68,6 +79,11 @@ forwarded headers including `X-Forwarded-Host`, `client_max_body_size`,
 `X-Content-Type-Options: nosniff`, `X-Frame-Options: SAMEORIGIN`,
 `Referrer-Policy: strict-origin-when-cross-origin`, and non-debug logging are
 part of the baseline.
+The Forwarded-For trust boundary should overwrite untrusted client chains at
+the direct-edge sample unless a deployment deliberately configures trusted
+real-IP proxies.
+Forwarded header suppression should prevent standardized client-selected
+forwarding metadata from bypassing that direct-edge policy.
 The Tornado static location also keeps `try_files $uri =404`.
 
 ## What We Will Not Merge (For Now)

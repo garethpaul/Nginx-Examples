@@ -1,7 +1,41 @@
 # Changes
 
+## 2026-06-19
+
+- Replaced client-selected `X-Forwarded-Port` with the direct listener port.
+- Restricted upstream Upgrade forwarding to case-insensitive WebSocket tokens.
+- Added live Nginx reverse-proxy tests and hostile static-checker mutations.
+- Integrated repository ownership and setup/loopback guidance from the overlapping CI root.
+
+## 2026-06-16
+
+- Added WebSocket upgrade proxying for mixed Tornado HTTP and WebSocket traffic.
+
+## 2026-06-15
+
+- Added a Forwarded Host trust boundary so upstream host identity comes from
+  the configured server name instead of client-selected Host metadata.
+- Added a Forwarded-For trust boundary so the Tornado sample overwrites
+  untrusted client chains with the direct peer address.
+- Added Forwarded header suppression so standardized client-selected forwarding
+  metadata cannot bypass the direct-edge proxy policy.
+- Added Proxy request header suppression before the Tornado upstream boundary.
+
+## 2026-06-13
+
+- Made every dependency-free Make alias resolve the static checker from the
+  checkout when the Makefile is invoked by absolute path.
+- Added per-file purpose and production adaptation guidance for both sample
+  configurations, including deployment-host `nginx -t` boundaries.
+
+## 2026-06-12
+
+- Disabled persisted checkout credentials and enforced the sole pinned
+  credential-free workflow boundary.
+
 ## 2026-06-10
 
+- Added 30-second upstream I/O timeouts for Tornado proxy reads and sends.
 - Added a five-second upstream connect timeout to bound failed Tornado backend
   connection attempts while preserving the existing response read window.
 - Added pinned, read-only Python 3.12 hosted validation for the static Nginx
