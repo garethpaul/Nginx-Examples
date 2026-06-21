@@ -138,6 +138,8 @@ from the checked-in HTTP-only listener.
 - The Make gates are location-independent. From another directory, pass the
   checkout's Makefile by absolute path, such as
   `make -f /path/to/Nginx-Examples/Makefile check`.
+- `ROOT` overrides are ignored. Attempts to replace GNU Make's automatic
+  `MAKEFILE_LIST` metadata fail before checker or live proxy recipes run.
 - Pinned `ubuntu-24.04` GitHub Actions installs Ubuntu Nginx and runs the static,
   hostile-mutation, syntax, and live reverse-proxy boundary tests on Python
   3.12. Deployment-host `nginx -t` remains required after

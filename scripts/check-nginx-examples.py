@@ -8,9 +8,12 @@ import xml.etree.ElementTree as ET
 
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_MAKEFILE = """override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+EXPECTED_MAKEFILE = """ifneq ($(origin MAKEFILE_LIST),file)
+$(error MAKEFILE_LIST must not be overridden)
+endif
+override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 
-.PHONY: build check checker-test lint proxy-test static-check test verify
+.PHONY: build check checker-test lint proxy-test root-test static-check test verify
 
 PYTHON ?= python3
 
@@ -20,13 +23,16 @@ verify: static-check test
 
 lint build: static-check
 
-test: checker-test proxy-test
+test: checker-test proxy-test root-test
 
 checker-test:
 	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-check-nginx-examples.py"
 
 proxy-test:
 	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-nginx-proxy.py"
+
+root-test:
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-makefile-root.py"
 
 static-check:
 \tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/check-nginx-examples.py"
@@ -69,6 +75,7 @@ REQUIRED = [
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
     "scripts/test-check-nginx-examples.py",
+    "scripts/test-makefile-root.py",
     "scripts/test-nginx-proxy.py",
 ] + CONFIGS
 

@@ -1,5 +1,11 @@
 # Changes
 
+## 2026-06-21
+
+- Rejected command-line and environment-preferred `MAKEFILE_LIST` metadata
+  before verification recipes can be redirected outside the checkout.
+- Added root-policy regressions to the normal test target.
+
 ## 2026-06-19
 
 - Replaced client-selected `X-Forwarded-Port` with the direct listener port.
