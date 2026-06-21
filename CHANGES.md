@@ -5,6 +5,8 @@
 - Rejected command-line and environment-preferred `MAKEFILE_LIST` metadata
   before verification recipes can be redirected outside the checkout.
 - Added root-policy regressions to the normal test target.
+- Preserved absolute Makefile paths containing whitespace and shell quoting
+  characters without allowing checkout names to trigger command substitution.
 
 ## 2026-06-19
 
