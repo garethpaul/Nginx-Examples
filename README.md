@@ -140,6 +140,9 @@ from the checked-in HTTP-only listener.
   `make -f /path/to/Nginx-Examples/Makefile check`.
 - `ROOT` overrides are ignored. Attempts to replace GNU Make's automatic
   `MAKEFILE_LIST` metadata fail before checker or live proxy recipes run.
+- Absolute Makefile paths containing spaces, brackets, apostrophes, double
+  quotes, or backticks retain the complete checkout root. The derived root is
+  shell quoted before every recipe runs.
 - Pinned `ubuntu-24.04` GitHub Actions installs Ubuntu Nginx and runs the static,
   hostile-mutation, syntax, and live reverse-proxy boundary tests on Python
   3.12. Deployment-host `nginx -t` remains required after

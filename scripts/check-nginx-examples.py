@@ -11,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_MAKEFILE = """ifneq ($(origin MAKEFILE_LIST),file)
 $(error MAKEFILE_LIST must not be overridden)
 endif
-override ROOT := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+override ROOT := $(shell path='$(subst ','"'"',$(MAKEFILE_LIST))'; path=$$(printf '%s' "$$path" | /usr/bin/sed 's/^ //'); /usr/bin/dirname -- "$$path")
+override SHELL_ROOT := $(subst ','"'"',$(ROOT))
 
 .PHONY: build check checker-test lint proxy-test root-test static-check test verify
 
@@ -26,16 +27,16 @@ lint build: static-check
 test: checker-test proxy-test root-test
 
 checker-test:
-	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-check-nginx-examples.py"
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) '$(SHELL_ROOT)/scripts/test-check-nginx-examples.py'
 
 proxy-test:
-	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-nginx-proxy.py"
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) '$(SHELL_ROOT)/scripts/test-nginx-proxy.py'
 
 root-test:
-	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/test-makefile-root.py"
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) '$(SHELL_ROOT)/scripts/test-makefile-root.py'
 
 static-check:
-\tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) "$(ROOT)/scripts/check-nginx-examples.py"
+\tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) '$(SHELL_ROOT)/scripts/check-nginx-examples.py'
 """
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
 REQUIRED = [
@@ -72,6 +73,8 @@ REQUIRED = [
     "docs/plans/2026-06-15-forwarded-header-suppression.md",
     "docs/plans/2026-06-16-websocket-upgrade-proxying.md",
     "docs/plans/2026-06-19-proxy-boundary-review.md",
+    "docs/plans/2026-06-21-safe-make-root.md",
+    "docs/plans/2026-06-21-spaced-makefile-path.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
     "scripts/test-check-nginx-examples.py",
@@ -284,6 +287,7 @@ def main() -> int:
     location_independent_make_plan = read(
         "docs/plans/2026-06-13-location-independent-make.md"
     )
+    spaced_makefile_plan = read("docs/plans/2026-06-21-spaced-makefile-path.md")
     if "make -f /path/to/Nginx-Examples/Makefile check" not in readme:
         failures.append("README must document location-independent Makefile invocation")
     if not all(
@@ -296,6 +300,18 @@ def main() -> int:
     ):
         failures.append(
             "location-independent Make plan must record completed root, external, and mutation verification"
+        )
+    if not all(
+        evidence in spaced_makefile_plan
+        for evidence in [
+            "status: completed",
+            "all nine Make aliases",
+            "command-substitution",
+            "live loopback Nginx tests",
+        ]
+    ):
+        failures.append(
+            "spaced Makefile path plan must preserve hostile-path and execution proof"
         )
     for phrase in [
         "make lint",
