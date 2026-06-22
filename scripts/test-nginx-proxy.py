@@ -208,6 +208,29 @@ class ProxyBoundaryTests(unittest.TestCase):
         self.assertEqual(headers["connection"], "upgrade")
         self.assertEqual(result["path"], "/socket?token=opaque")
 
+    def test_websocket_upgrade_requires_connection_upgrade_token(self) -> None:
+        for connection in [None, "close", "keep-alive"]:
+            with self.subTest(connection=connection):
+                headers = {"Host": "example.local", "Upgrade": "websocket"}
+                if connection is not None:
+                    headers["Connection"] = connection
+                result = request(self.proxy_port, "/socket", headers)
+                upstream_headers = result["headers"]
+                self.assertNotIn("upgrade", upstream_headers)
+                self.assertEqual(upstream_headers["connection"], "close")
+
+    def test_websocket_upgrade_accepts_connection_token_lists_case_insensitively(self) -> None:
+        for connection in ["keep-alive, Upgrade", "UPGRADE, keep-alive"]:
+            with self.subTest(connection=connection):
+                result = request(
+                    self.proxy_port,
+                    "/socket",
+                    {"Host": "example.local", "Connection": connection, "Upgrade": "WebSocket"},
+                )
+                headers = result["headers"]
+                self.assertEqual(headers["upgrade"], "websocket")
+                self.assertEqual(headers["connection"], "upgrade")
+
     def test_proxy_pass_preserves_encoded_path_and_repeated_query(self) -> None:
         result = request(
             self.proxy_port,
