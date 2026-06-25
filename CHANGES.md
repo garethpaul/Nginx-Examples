@@ -1,5 +1,12 @@
 # Changes
 
+## 2026-06-25
+
+- Required an explicit, case-insensitive `Connection: upgrade` token before
+  forwarding a WebSocket `Upgrade` request to Tornado.
+- Added hostile checker mutations and live Nginx proxy coverage for missing,
+  unrelated, mixed-token, and case-insensitive connection intent.
+
 ## 2026-06-21
 
 - Rejected command-line and environment-preferred `MAKEFILE_LIST` metadata

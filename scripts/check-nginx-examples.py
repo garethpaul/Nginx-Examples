@@ -239,9 +239,14 @@ def main() -> int:
         and 0 <= proxy_suppression_index < proxy_pass_index
     ):
         failures.append("Tornado proxy requests must suppress the inbound Proxy header before proxy_pass")
+    connection_token_map = re.findall(
+        r"(?ms)^\s*map\s+\$http_connection\s+\$connection_has_upgrade\s*\{\s*"
+        r"default\s+0;\s*~\*\(\^\|,\)\\s\*upgrade\\s\*\(,\|\$\)\s+1;\s*\}",
+        active_tornado,
+    )
     sanitized_upgrade_map = re.findall(
-        r"(?ms)^\s*map\s+\$http_upgrade\s+\$upstream_upgrade\s*\{\s*"
-        r"default\s+'';\s*~\*\^websocket\$\s+websocket;\s*\}",
+        r'(?ms)^\s*map\s+"\$connection_has_upgrade:\$http_upgrade"\s+\$upstream_upgrade\s*\{\s*'
+        r"default\s+'';\s*~\*\^1:websocket\$\s+websocket;\s*\}",
         active_tornado,
     )
     connection_upgrade_map = re.findall(
@@ -250,15 +255,29 @@ def main() -> int:
         active_tornado,
     )
     http_index = active_tornado.find("http {")
-    map_index = active_tornado.find("map $http_upgrade $upstream_upgrade {")
+    connection_token_map_index = active_tornado.find(
+        "map $http_connection $connection_has_upgrade {"
+    )
+    map_index = active_tornado.find(
+        'map "$connection_has_upgrade:$http_upgrade" $upstream_upgrade {'
+    )
     connection_map_index = active_tornado.find("map $upstream_upgrade $connection_upgrade {")
     upstream_index = active_tornado.find("upstream frontends {")
     if not (
-        len(sanitized_upgrade_map) == 1
+        len(connection_token_map) == 1
+        and len(sanitized_upgrade_map) == 1
         and len(connection_upgrade_map) == 1
-        and 0 <= http_index < map_index < connection_map_index < upstream_index
+        and 0
+        <= http_index
+        < connection_token_map_index
+        < map_index
+        < connection_map_index
+        < upstream_index
+        and active_tornado.count("$connection_has_upgrade") == 2
     ):
-        failures.append("Tornado WebSocket upgrade maps must sanitize websocket-only traffic at http scope")
+        failures.append(
+            "Tornado WebSocket upgrade maps must require Connection upgrade intent and exact websocket traffic at http scope"
+        )
     if not (
         active_tornado.count(proxy_http_version) == 1
         and active_tornado.count(upgrade_header) == 1
