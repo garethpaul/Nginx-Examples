@@ -39,6 +39,7 @@ static-check:
 \tPYTHONDONTWRITEBYTECODE=1 $(PYTHON) '$(SHELL_ROOT)/scripts/check-nginx-examples.py'
 """
 CONFIGS = ["sample_php_nginx.conf", "sample_tornado_nginx.conf"]
+TLS_TEMPLATE = "sample_tls_nginx.conf.example"
 REQUIRED = [
     ".gitignore",
     ".github/CODEOWNERS",
@@ -75,12 +76,13 @@ REQUIRED = [
     "docs/plans/2026-06-19-proxy-boundary-review.md",
     "docs/plans/2026-06-21-safe-make-root.md",
     "docs/plans/2026-06-21-spaced-makefile-path.md",
+    "docs/plans/2026-06-25-safe-tls-placeholder.md",
     "docs/readme-overview.svg",
     "scripts/check-nginx-examples.py",
     "scripts/test-check-nginx-examples.py",
     "scripts/test-makefile-root.py",
     "scripts/test-nginx-proxy.py",
-] + CONFIGS
+] + CONFIGS + [TLS_TEMPLATE]
 
 
 def read(path: str) -> str:
@@ -295,6 +297,41 @@ def main() -> int:
     if not upstreams or any(host != "127.0.0.1" for host in upstreams):
         failures.append("sample_tornado_nginx.conf upstreams must stay loopback placeholders")
 
+    tls_path = ROOT / TLS_TEMPLATE
+    tls = read(TLS_TEMPLATE) if tls_path.is_file() else ""
+    active_tls = strip_comments(tls)
+    check_balanced_braces(TLS_TEMPLATE, tls, failures)
+    for phrase in [
+        "# TEMPLATE ONLY:",
+        "listen 443 ssl;",
+        "server_name example.invalid;",
+        "ssl_certificate /path/to/fullchain.pem;",
+        "ssl_certificate_key /path/to/privkey.pem;",
+        "ssl_protocols TLSv1.2 TLSv1.3;",
+        "ssl_session_cache shared:TLS:10m;",
+        "ssl_session_timeout 1d;",
+        "ssl_session_tickets off;",
+        "return 301 https://example.invalid$request_uri;",
+    ]:
+        source = tls if phrase.startswith("#") else active_tls
+        if phrase not in source:
+            failures.append(f"{TLS_TEMPLATE} must include {phrase}")
+    for phrase in [
+        "server_tokens off;",
+        "client_max_body_size 1m;",
+        "add_header X-Content-Type-Options nosniff always;",
+        "add_header X-Frame-Options SAMEORIGIN always;",
+        "add_header Referrer-Policy strict-origin-when-cross-origin always;",
+    ]:
+        if phrase not in active_tls:
+            failures.append(f"{TLS_TEMPLATE} must preserve the shared sample guard {phrase}")
+    if "add_header Strict-Transport-Security" in active_tls:
+        failures.append(f"{TLS_TEMPLATE} must not enable HSTS before deployment ownership and HTTPS validation")
+    if "Add HSTS only after" not in tls:
+        failures.append(f"{TLS_TEMPLATE} must explain the deferred HSTS boundary")
+    if re.search(r"server_name\s+(?!example\.invalid)[^;]+;", active_tls):
+        failures.append(f"{TLS_TEMPLATE} must use only example.invalid as its placeholder domain")
+
     makefile = read("Makefile")
     if makefile != EXPECTED_MAKEFILE:
         failures.append(
@@ -309,6 +346,23 @@ def main() -> int:
     spaced_makefile_plan = read("docs/plans/2026-06-21-spaced-makefile-path.md")
     if "make -f /path/to/Nginx-Examples/Makefile check" not in readme:
         failures.append("README must document location-independent Makefile invocation")
+    if "`sample_tls_nginx.conf.example`" not in readme:
+        failures.append("README must document the TLS placeholder template")
+    if "Add TLS examples only with safe placeholders" in read("VISION.md"):
+        failures.append("VISION must not retain the completed TLS placeholder priority")
+    tls_plan = read("docs/plans/2026-06-25-safe-tls-placeholder.md")
+    if not all(
+        phrase in tls_plan
+        for phrase in [
+            "Status: completed",
+            "example.invalid",
+            "TLS 1.2/1.3",
+            "Deferred HSTS",
+            "nginx -t",
+            "make check",
+        ]
+    ):
+        failures.append("TLS placeholder plan must record completed scope and verification")
     if not all(
         evidence in location_independent_make_plan.lower()
         for evidence in [

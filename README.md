@@ -20,6 +20,7 @@ This README is based on the checked-in source, manifests, scripts, and repositor
 - `VISION.md` - project direction and maintenance guardrails
 - `sample_php_nginx.conf` - full Nginx config skeleton with PHP/site include hooks
 - `sample_tornado_nginx.conf` - reverse proxy example for local Tornado workers
+- `sample_tls_nginx.conf.example` - non-runnable TLS placeholder template
 - `scripts/check-nginx-examples.py` - static baseline checks used by `make check`
 
 Additional scan context:
@@ -103,6 +104,20 @@ The static location keeps `try_files $uri =404;` so missing assets fail closed
 instead of falling through to another handler.
 The `proxy_pass http://frontends;` directive intentionally has no URI suffix,
 so Nginx preserves the incoming request path and query string.
+
+### `sample_tls_nginx.conf.example`
+
+This template uses only `example.invalid` and `/path/to` placeholders. It shows
+a fixed-host HTTP redirect, TLS 1.2/1.3, certificate/key directives, a shared
+session cache, one-day session timeout, disabled session tickets, the shared
+sample headers, `client_max_body_size 1m`, and `try_files $uri =404;`.
+
+Do not install it directly. Copy it outside the checkout, replace every domain
+and path, keep the private key readable only by the Nginx master process, review
+current deployment-specific TLS defaults, and run deployment-host `nginx -t`.
+HSTS remains commented because enabling it safely requires proven HTTPS-only
+operation, certificate renewal, rollback planning, and deliberate subdomain
+scope. See the official Nginx SSL module documentation linked in the template.
 
 This is a direct-edge example. `$remote_addr`, `$scheme`, and `$server_port`
 are authoritative only when clients connect directly to this Nginx listener.
