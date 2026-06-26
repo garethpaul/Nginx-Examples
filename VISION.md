@@ -43,7 +43,8 @@ Priority:
 
 Next priorities:
 
-- Add TLS examples only with safe placeholders
+- Keep TLS placeholder guidance synchronized with current Nginx directives and
+  deployment-host validation requirements
 
 Contribution rules:
 

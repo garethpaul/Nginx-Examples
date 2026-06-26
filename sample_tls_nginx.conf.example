@@ -1,0 +1,47 @@
+# TEMPLATE ONLY: copy this file, replace every example.invalid and /path/to
+# value, then run nginx -t against the rendered configuration before install.
+# Official directive reference: https://nginx.org/en/docs/http/ngx_http_ssl_module.html
+
+worker_processes 1;
+error_log stderr warn;
+pid /path/to/nginx.pid;
+
+events {
+    worker_connections 1024;
+}
+
+http {
+    default_type application/octet-stream;
+    server_tokens off;
+
+    server {
+        listen 80;
+        server_name example.invalid;
+        return 301 https://example.invalid$request_uri;
+    }
+
+    server {
+        listen 443 ssl;
+        server_name example.invalid;
+
+        ssl_certificate /path/to/fullchain.pem;
+        ssl_certificate_key /path/to/privkey.pem;
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_session_cache shared:TLS:10m;
+        ssl_session_timeout 1d;
+        ssl_session_tickets off;
+
+        # Add HSTS only after the real domain is HTTPS-only, certificate renewal
+        # is proven, and rollback/subdomain consequences are understood.
+
+        client_max_body_size 1m;
+        add_header X-Content-Type-Options nosniff always;
+        add_header X-Frame-Options SAMEORIGIN always;
+        add_header Referrer-Policy strict-origin-when-cross-origin always;
+
+        root /path/to/site-root;
+        location / {
+            try_files $uri =404;
+        }
+    }
+}

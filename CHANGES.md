@@ -1,5 +1,62 @@
 # Changes
 
+## 2026-06-26 06:23 - P2 - Add a safe TLS placeholder template
+
+### Summary
+
+Closed the TLS roadmap item with a deliberately non-runnable, contract-enforced
+template that requires deployment ownership and rendered syntax validation.
+
+### Work completed
+
+- Added `example.invalid` and `/path/to` certificate, key, pid, and root values.
+- Added TLS 1.2/1.3, fixed-host redirect, bounded session reuse, and disabled
+  session tickets while preserving shared sample guards.
+- Deferred HSTS until HTTPS-only operation, renewal, rollback, and subdomain
+  consequences are validated.
+- Added README adaptation guidance, a completed plan, and static contracts.
+
+### Threads
+
+- Started: safe TLS placeholder example.
+- Continued: continuous open-source maintenance loop.
+- Stopped: none.
+
+### Files changed
+
+- `sample_tls_nginx.conf.example` — template-only TLS server.
+- `README.md`, `VISION.md` — usage guidance and roadmap state.
+- `scripts/check-nginx-examples.py` — TLS template contract.
+- `docs/plans/2026-06-25-safe-tls-placeholder.md` — completed plan.
+- `CHANGES.md` — this cycle record.
+
+### Validation
+
+- Red static contract — failed for the missing template, directives, docs,
+  plan, and stale roadmap item before implementation.
+- Root and external `make check` — passed 12 checker mutations, seven live
+  reverse-proxy tests, seven Make-root tests, and the static baseline.
+- Sixteen isolated TLS mutations — all rejected across placeholders, protocol,
+  session, redirect, header, HSTS, README, roadmap, and plan boundaries.
+- Hosted Nginx and CodeQL results pending.
+
+### Bugs / findings
+
+- P2: The roadmap requested TLS guidance but no safe certificate/domain
+  placeholder existed, leaving operators to improvise from unrelated samples.
+- P2: Enabling HSTS in a generic sample would create unsafe persistence and
+  subdomain assumptions without deployment ownership.
+
+### Blockers
+
+- The checked-in template cannot pass `nginx -t` until an operator supplies a
+  real certificate, private key, domain, pid path, and content root.
+
+### Next action
+
+- Run static/live baseline and hostile template mutations, then require hosted
+  Nginx and CodeQL evidence before review and merge.
+
 ## 2026-06-25
 
 - Required an explicit, case-insensitive `Connection: upgrade` token before
