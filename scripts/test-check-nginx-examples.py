@@ -38,6 +38,31 @@ def check_mutation(old: str, new: str) -> subprocess.CompletedProcess[str]:
     return check_config(config.replace(old, new, 1))
 
 
+def check_repository_mutation(
+    path: str, old: str, new: str
+) -> subprocess.CompletedProcess[str]:
+    with tempfile.TemporaryDirectory(prefix="nginx-examples-check-") as temporary_directory:
+        checkout = Path(temporary_directory) / "checkout"
+        shutil.copytree(ROOT, checkout, ignore=shutil.ignore_patterns(".git", ".explore"))
+        baseline = subprocess.run(
+            ["python3", str(checkout / "scripts/check-nginx-examples.py")],
+            capture_output=True,
+            text=True,
+        )
+        if baseline.returncode != 0:
+            raise AssertionError("unmodified checker baseline failed:\n" + baseline.stdout + baseline.stderr)
+        target = checkout / path
+        text = target.read_text(encoding="utf-8")
+        if old not in text:
+            raise AssertionError(f"mutation source missing in {path}: {old!r}")
+        target.write_text(text.replace(old, new, 1), encoding="utf-8")
+        return subprocess.run(
+            ["python3", str(checkout / "scripts/check-nginx-examples.py")],
+            capture_output=True,
+            text=True,
+        )
+
+
 class CheckerMutationTests(unittest.TestCase):
     def assertRejected(self, old: str, new: str) -> None:
         result = check_mutation(old, new)
@@ -123,6 +148,14 @@ class CheckerMutationTests(unittest.TestCase):
             "            proxy_pass http://frontends;",
             "            proxy_pass http://frontends/;",
         )
+
+    def test_stale_http_only_security_boundary_is_rejected(self) -> None:
+        result = check_repository_mutation(
+            "SECURITY.md",
+            "The runnable PHP and Tornado examples are HTTP-only.",
+            "The examples are HTTP-only.",
+        )
+        self.assertNotEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
 if __name__ == "__main__":

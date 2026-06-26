@@ -1,5 +1,33 @@
 # Changes
 
+## 2026-06-26 - P2 - Correct the TLS security boundary
+
+### Summary
+
+Corrected stale security guidance that described the entire repository as
+HTTP-only after the non-runnable TLS placeholder template was added.
+
+### Work completed
+
+- Scoped the HTTP-only statement to the runnable PHP and Tornado examples.
+- Identified the checked-in TLS file as a template that still requires a real
+  domain, certificate, key, filesystem paths, and deployment-host `nginx -t`.
+- Added a fail-closed static policy and hostile mutation for this distinction.
+
+### Validation
+
+- RED: the static checker rejected the stale `SECURITY.md` wording before the
+  policy was corrected.
+- GREEN: the focused checker and hostile mutation suite pass with the corrected
+  runnable-versus-template boundary.
+- Implementation head `ba89dbc5ffbafbea3f07d8e14ad13ae45771a14e`
+  passed both hosted Nginx baselines, CodeQL actions and Python analyses, and
+  the CodeQL aggregate gate on pull request #18.
+- Required Codex review was attempted against `origin/master` and stopped
+  before analysis because both WebSocket and HTTPS transports returned OpenAI
+  HTTP 401. Immutable local, remote, and pull-request heads matched, and the
+  manual fallback review found no actionable defects.
+
 ## 2026-06-26 06:23 - P2 - Add a safe TLS placeholder template
 
 ### Summary

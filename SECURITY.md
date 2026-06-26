@@ -92,9 +92,12 @@ Treat sample users, domains, paths, upstream ports, body limits, timeouts, and
 listener choices as deployment inputs rather than production policy. Review
 forwarded-header trust, filesystem permissions, log retention, TLS termination,
 and network exposure before installing or reloading an adapted configuration.
-The examples are HTTP-only. HSTS belongs only on a fully deployed HTTPS virtual
-host. Streaming handlers must also review Nginx's default request/response
-buffering and WebSocket ping/read-timeout policy.
+The runnable PHP and Tornado examples are HTTP-only. The checked-in TLS file is
+a non-runnable placeholder template that requires a real domain, certificate,
+private key, filesystem paths, and deployment-host `nginx -t` before install.
+HSTS belongs only on a fully deployed HTTPS virtual host. Streaming handlers
+must also review Nginx's default request/response buffering and WebSocket
+ping/read-timeout policy.
 
 ## Safe Research Guidelines
 
