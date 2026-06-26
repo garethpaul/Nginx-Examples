@@ -348,6 +348,14 @@ def main() -> int:
         failures.append("README must document location-independent Makefile invocation")
     if "`sample_tls_nginx.conf.example`" not in readme:
         failures.append("README must document the TLS placeholder template")
+    security = read("SECURITY.md")
+    normalized_security = " ".join(security.split())
+    if "The runnable PHP and Tornado examples are HTTP-only." not in normalized_security:
+        failures.append("SECURITY must scope the HTTP-only boundary to the runnable examples")
+    if "The checked-in TLS file is a non-runnable placeholder template" not in normalized_security:
+        failures.append("SECURITY must identify the TLS file as a non-runnable placeholder")
+    if "The examples are HTTP-only." in normalized_security:
+        failures.append("SECURITY must not describe the TLS template as an HTTP-only example")
     if "Add TLS examples only with safe placeholders" in read("VISION.md"):
         failures.append("VISION must not retain the completed TLS placeholder priority")
     tls_plan = read("docs/plans/2026-06-25-safe-tls-placeholder.md")
