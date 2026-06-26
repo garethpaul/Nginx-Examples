@@ -23,5 +23,12 @@ content-root placeholders followed by deployment-host `nginx -t`.
   template boundary, and rejects the old unqualified claim.
 - The mutation suite replaces the scoped statement with the stale wording and
   requires the checker to reject it.
-- Root, external, hosted, and exact-head review evidence is recorded before
-  merge.
+- Root and external full gates passed 13 checker mutations, seven live Nginx
+  proxy tests, seven Make-root tests, and the static baseline.
+- Pull request #18 implementation head
+  `ba89dbc5ffbafbea3f07d8e14ad13ae45771a14e` passed both hosted Nginx
+  baselines, CodeQL actions and Python analyses, and the aggregate gate.
+- Required Codex review was attempted against `origin/master`; the helper
+  stopped before analysis because OpenAI WebSocket and HTTPS transports both
+  returned HTTP 401. Local, remote, and pull-request heads were identical, and
+  an immutable manual fallback review found no actionable defects.

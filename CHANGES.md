@@ -20,8 +20,13 @@ HTTP-only after the non-runnable TLS placeholder template was added.
   policy was corrected.
 - GREEN: the focused checker and hostile mutation suite pass with the corrected
   runnable-versus-template boundary.
-- Full local, external, hosted, and review evidence is recorded in
-  `docs/plans/2026-06-26-tls-security-boundary.md`.
+- Implementation head `ba89dbc5ffbafbea3f07d8e14ad13ae45771a14e`
+  passed both hosted Nginx baselines, CodeQL actions and Python analyses, and
+  the CodeQL aggregate gate on pull request #18.
+- Required Codex review was attempted against `origin/master` and stopped
+  before analysis because both WebSocket and HTTPS transports returned OpenAI
+  HTTP 401. Immutable local, remote, and pull-request heads matched, and the
+  manual fallback review found no actionable defects.
 
 ## 2026-06-26 06:23 - P2 - Add a safe TLS placeholder template
 
